@@ -45,8 +45,10 @@
 
 ### 4.1 봉사자 입력 폼 (정적 HTML)
 
-- 입력 항목: 이름, 생년월일(yy.mm.dd), 연락처, 활동시간(시작·종료 시각 선택), 개인정보 제공 동의(체크박스, 필수)
-  - 활동시간은 시작 시각과 종료 시각을 10분 단위로 고른다. 선택 범위는 설정값 `ACTIVITY_WINDOW`, 총합은 `MAX_ACTIVITY_HOURS`(기본 4시간) 이하. 서버에서도 같은 규칙으로 다시 검증한다.
+- 입력 항목: 이름, 생년월일(yy.mm.dd), 연락처, 활동시간, 개인정보 제공 동의(체크박스, 필수)
+  - 활동시간 선택 방식은 설정값 `TIME_MODE`로 고른다. 서버에서도 같은 규칙으로 다시 검증한다.
+    - `free`: 시작·종료 시각을 10분 단위로 고른다. 선택 범위는 `ACTIVITY_WINDOW`, 총합은 `MAX_ACTIVITY_HOURS`(기본 8시간) 이하.
+    - `preset`: 오전·오후·종일 중 하나를 고른다. 각 시간은 `TIME_MORNING`, `TIME_AFTERNOON`, `TIME_FULLDAY`에서 읽고, 폼은 선택지 키만 보낸다.
   - [제출하기]를 누르면 바로 보내지 않고 확인 팝업을 띄운다: 이름, 생년월일, 연락처, 활동시간 `HH:mm~HH:mm (총 n시간)`, 개인정보 제공 동의 + "위 내용으로 제출하시겠습니까? 제출 후에는 수정할 수 없습니다."
   - 생년월일, 연락처는 입력 형식 검증 (예: `95.03.12`, `010-1234-5678`)
 - 봉사일자는 사용자가 고르지 않는다. 서버가 제출 시점의 한국 날짜로 자동 입력한다.
@@ -249,8 +251,10 @@ Apps Script 시간 기반 트리거는 1시간 범위로 실행된다. 스크립
 | `LLM_MODEL`                      |                                                | 사용할 모델명          |
 | `SHELTER_LAT` / `SHELTER_LNG`    | 37.5… / 126.7…                                 | 쉼터 좌표              |
 | `GEOFENCE_RADIUS_M`              | 300                                            | 허용 반경              |
-| `ACTIVITY_WINDOW`                | 10:00~18:00                                    | 활동시간 선택 범위     |
-| `MAX_ACTIVITY_HOURS`             | 4                                              | 최대 활동시간          |
+| `TIME_MODE`                      | free                                           | 활동시간 선택 방식 (free / preset) |
+| `ACTIVITY_WINDOW`                | 10:00~18:00                                    | free: 선택 범위        |
+| `MAX_ACTIVITY_HOURS`             | 8                                              | free: 최대 활동시간    |
+| `TIME_MORNING` / `TIME_AFTERNOON` / `TIME_FULLDAY` | 10:00~14:00 / 14:00~18:00 / 10:00~18:00 | preset: 오전·오후·종일 시간 |
 | `ORG_NAME`                       | ○○쉼터                                         | 활동기관·기관명        |
 | `ACTIVITY_DESC`                  | 유기동물 쉼터 환경 정리 및 돌봄                | 활동내용(공통)         |
 | `MANAGER_NAME` / `MANAGER_PHONE` |                                                | 담당자·연락처          |
@@ -267,7 +271,7 @@ Apps Script 시간 기반 트리거는 1시간 범위로 실행된다. 스크립
 
 텔레그램 웹훅 검증용 비밀값 `WEBHOOK_SECRET`(비밀)도 함께 둔다 (9장 참고).
 
-폼은 활동시간 선택 범위(`ACTIVITY_WINDOW`, `MAX_ACTIVITY_HOURS`)를 Apps Script `doGet`으로 내려받으므로 폼 HTML은 수정 없이 유지된다.
+폼은 활동시간 선택 방식과 범위(`TIME_MODE` 등)를 Apps Script `doGet`으로 내려받으므로 폼 HTML은 수정 없이 유지된다.
 
 ## 9. 예외 처리와 보안
 

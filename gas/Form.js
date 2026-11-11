@@ -6,8 +6,15 @@
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_SEC = 600;
 
-// 활동 시작·종료 시각은 이 단위(분)로만 고를 수 있다.
+// 자유 선택 모드에서 시작·종료 시각은 이 단위(분)로만 고를 수 있다.
 const TIME_STEP_MINUTES = 10;
+
+// 오전·오후·종일 모드의 선택지. key는 폼이 보내는 값, configKey는 시간을 읽을 스크립트 속성
+const TIME_PRESETS = [
+  { key: 'morning', label: '오전', configKey: 'TIME_MORNING' },
+  { key: 'afternoon', label: '오후', configKey: 'TIME_AFTERNOON' },
+  { key: 'fullday', label: '종일', configKey: 'TIME_FULLDAY' },
+];
 
 // 첫 글자는 반드시 문자 (수식으로 해석될 수 있는 =, +, - 등으로 시작하지 않게)
 const NAME_PATTERN = /^[가-힣a-zA-Z][가-힣a-zA-Z .-]{0,19}$/;
@@ -89,7 +96,7 @@ function validateSubmission_(data) {
   if (!p) throw new Error('연락처를 확인해 주세요. (예: 010-1234-5678)');
   const phone = `${p[1]}-${p[2]}-${p[3]}`;
 
-  const activityTime = validateActivityTime_(data.startTime, data.endTime);
+  const activityTime = validateActivityTime_(data);
 
   if (data.consent !== true) throw new Error('개인정보 제공에 동의해야 제출할 수 있어요.');
 
@@ -102,21 +109,52 @@ function validateSubmission_(data) {
   return { name, birth, phone, activityTime, lat, lng };
 }
 
-// 시작·종료 시각이 활동 가능 시간 안이고, 10분 단위이며, 최대 시간 이하인지 확인한다.
-function validateActivityTime_(startTime, endTime) {
+// TIME_MODE에 따른 활동시간 선택 규칙. doGet으로 폼에 내려주고, 제출 검증에도 쓴다.
+//   free:   { mode, window: {start, end}, maxMinutes, stepMinutes }
+//   preset: { mode, presets: [{key, label, start, end}] }
+function getActivityRule_() {
+  const mode = requireConfig_(['TIME_MODE']).TIME_MODE;
+  if (mode === 'preset') {
+    const config = requireConfig_(TIME_PRESETS.map((p) => p.configKey));
+    return {
+      mode,
+      presets: TIME_PRESETS.map((p) => {
+        const [start, end] = config[p.configKey].split('~').map((t) => t.trim());
+        return { key: p.key, label: p.label, start, end };
+      }),
+    };
+  }
   const config = requireConfig_(['ACTIVITY_WINDOW', 'MAX_ACTIVITY_HOURS']);
-  const window = parseTimeRange_(config.ACTIVITY_WINDOW);
-  const start = parseTime_(startTime);
-  const end = parseTime_(endTime);
+  const [start, end] = config.ACTIVITY_WINDOW.split('~').map((t) => t.trim());
+  return {
+    mode,
+    window: { start, end },
+    maxMinutes: Number(config.MAX_ACTIVITY_HOURS) * 60,
+    stepMinutes: TIME_STEP_MINUTES,
+  };
+}
+
+// 제출된 활동시간을 규칙에 맞는지 확인하고 "HH:mm~HH:mm"으로 돌려준다.
+// preset 모드에서는 폼이 보낸 시각이 아니라 스크립트 속성의 시각을 쓴다.
+function validateActivityTime_(data) {
+  const rule = getActivityRule_();
+  if (rule.mode === 'preset') {
+    const preset = rule.presets.find((p) => p.key === data.preset);
+    if (!preset) throw new Error('활동시간(오전·오후·종일)을 선택해 주세요.');
+    return `${preset.start}~${preset.end}`;
+  }
+
+  const start = parseTime_(data.startTime);
+  const end = parseTime_(data.endTime);
   if (start === null || end === null) throw new Error('활동 시작·종료 시각을 선택해 주세요.');
-  if (start < window.start || end > window.end) {
-    throw new Error(`활동시간은 ${config.ACTIVITY_WINDOW} 사이로 선택해 주세요.`);
+  if (start < parseTime_(rule.window.start) || end > parseTime_(rule.window.end)) {
+    throw new Error(`활동시간은 ${rule.window.start}~${rule.window.end} 사이로 선택해 주세요.`);
   }
   if (end <= start) throw new Error('종료 시각은 시작 시각보다 늦어야 해요.');
-  if (end - start > Number(config.MAX_ACTIVITY_HOURS) * 60) {
-    throw new Error(`활동시간은 최대 ${config.MAX_ACTIVITY_HOURS}시간까지 선택할 수 있어요.`);
+  if (end - start > rule.maxMinutes) {
+    throw new Error(`활동시간은 최대 ${rule.maxMinutes / 60}시간까지 선택할 수 있어요.`);
   }
-  return `${startTime}~${endTime}`;
+  return `${data.startTime}~${data.endTime}`;
 }
 
 // 시도 횟수를 세고 한도를 넘었는지 돌려준다. 캐시 키에는 연락처 대신 해시를 쓴다.

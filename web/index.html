@@ -26,15 +26,20 @@
 
         <fieldset>
           <legend>활동시간 <span id="time-rule" class="hint"></span></legend>
-          <div class="time-row">
-            <select id="start-time" aria-label="시작 시각" required disabled>
-              <option value="">시작</option>
-            </select>
-            <span>~</span>
-            <select id="end-time" aria-label="종료 시각" required disabled>
-              <option value="">종료</option>
-            </select>
+          <!-- TIME_MODE=free: 시작·종료 시각 선택 -->
+          <div id="time-free" hidden>
+            <div class="time-row">
+              <select id="start-time" aria-label="시작 시각" required>
+                <option value="">시작</option>
+              </select>
+              <span>~</span>
+              <select id="end-time" aria-label="종료 시각" required disabled>
+                <option value="">종료</option>
+              </select>
+            </div>
           </div>
+          <!-- TIME_MODE=preset: 오전·오후·종일 중 하나 -->
+          <div id="time-presets" hidden></div>
           <p id="time-total" class="hint">불러오는 중…</p>
         </fieldset>
 

@@ -4,16 +4,9 @@
 
 const TIME_ZONE = 'Asia/Seoul';
 
-// 폼이 처음 열릴 때 활동시간 선택 범위를 내려받는다.
+// 폼이 처음 열릴 때 활동시간 선택 방식(자유 선택 / 오전·오후·종일)을 내려받는다.
 function doGet() {
-  const config = requireConfig_(['ACTIVITY_WINDOW', 'MAX_ACTIVITY_HOURS']);
-  const [start, end] = config.ACTIVITY_WINDOW.split('~').map((s) => s.trim());
-  return jsonResponse_({
-    ok: true,
-    window: { start, end },
-    maxMinutes: Number(config.MAX_ACTIVITY_HOURS) * 60,
-    stepMinutes: TIME_STEP_MINUTES,
-  });
+  return jsonResponse_(Object.assign({ ok: true }, getActivityRule_()));
 }
 
 function doPost(e) {

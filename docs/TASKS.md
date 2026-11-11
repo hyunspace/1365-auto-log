@@ -29,16 +29,16 @@
 
 - [x] 🤖 `Config.js`: Script Properties 읽기, 필수값 누락 시 오류 알림
 - [x] 🤖 `Sheet.js` + `setupSheets()`: 신청 / 주차 / 대화상태 / 처리로그 탭과 컬럼 생성 (생년월일·연락처는 텍스트 서식)
-- [x] 🙋 Script Properties 1차 입력: `SHEET_ID`, `SHELTER_LAT/LNG`, `GEOFENCE_RADIUS_M`, `ACTIVITY_WINDOW`, `MAX_ACTIVITY_HOURS` (뒤의 셋은 비우면 기본값)
+- [x] 🙋 Script Properties 1차 입력: `SHEET_ID`, `SHELTER_LAT/LNG`, `GEOFENCE_RADIUS_M`, 활동시간 설정(`TIME_MODE` 등) (반경·활동시간은 비우면 기본값)
 - [x] 🙋 `setupSheets()` 수동 실행, 권한 승인
 
 **확인**: 시트에 탭 4개와 컬럼이 생기고, 값을 하나 지우면 오류가 뜬다.
 
 ## 2. 봉사자 폼과 제출 처리 (`form`, `gas`)
 
-- [x] 🤖 `Main.js`: `doGet`(활동시간 선택 범위 반환) / `doPost` 라우팅 (`update_id` 유무로 웹훅·폼 구분)
+- [x] 🤖 `Main.js`: `doGet`(활동시간 선택 방식·범위 반환) / `doPost` 라우팅 (`update_id` 유무로 웹훅·폼 구분)
 - [x] 🤖 `Form.js`: 하버사인 거리 검증, 중복 체크(봉사일자+이름+생년월일), 레이트 리밋, 행 추가
-- [x] 🤖 `web/`: 입력 폼, 위치 권한 요청, 형식 검증, 시작·종료 시각 선택(10분 단위, 최대 4시간), 제출 전 확인 팝업, `text/plain` POST, 완료·실패 화면
+- [x] 🤖 `web/`: 입력 폼, 위치 권한 요청, 형식 검증, 활동시간 선택(`TIME_MODE`: `free` 시작·종료 10분 단위 최대 8시간 / `preset` 오전·오후·종일), 제출 전 확인 팝업, `text/plain` POST, 완료·실패 화면
 - [ ] 🙋 웹앱 배포: 편집기 **배포 → 새 배포 → 웹 앱** (실행: 나 / 액세스: 모든 사용자)
   - 웹 앱 URL(`.../exec`)과 배포 ID를 메모 (`.env`의 `WEBAPP_URL`, `DEPLOYMENT_ID`)
   - 브라우저로 URL을 열어 `{"ok":true,"timeSlots":[...]}`가 보이는지 확인

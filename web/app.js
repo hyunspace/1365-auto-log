@@ -13,7 +13,9 @@
   const timeTotal = $('time-total');
   const dialog = $('confirm-dialog');
 
-  // timeRule: 서버 doGet이 내려주는 { window: {start, end}, maxMinutes, stepMinutes }
+  // timeRule: 서버 doGet이 내려주는 활동시간 규칙
+  //   free:   { mode, window: {start, end}, maxMinutes, stepMinutes }
+  //   preset: { mode, presets: [{key, label, start, end}] }
   const state = { position: null, timeRule: null, sending: false };
 
   function updateSubmitButton() {
@@ -64,7 +66,7 @@
 
   retryButton.addEventListener('click', checkLocation);
 
-  // ---------- 활동시간 (시작·종료 시각 선택) ----------
+  // ---------- 활동시간 (free: 시작·종료 시각 선택 / preset: 오전·오후·종일) ----------
 
   function toMinutes(hhmm) {
     const [h, m] = hhmm.split(':').map(Number);
@@ -119,18 +121,51 @@
     return toMinutes(endSelect.value) - toMinutes(startSelect.value);
   }
 
+  function setupFreeMode(rule) {
+    $('time-rule').textContent = `(${rule.window.start}~${rule.window.end}, 최대 ${formatDuration(rule.maxMinutes)})`;
+    const starts = [];
+    for (let t = toMinutes(rule.window.start); t < toMinutes(rule.window.end); t += rule.stepMinutes) starts.push(t);
+    fillOptions(startSelect, '시작', starts, null);
+    updateEndOptions();
+    $('time-free').hidden = false;
+  }
+
+  function setupPresetMode(rule) {
+    const container = $('time-presets');
+    container.innerHTML = '';
+    rule.presets.forEach((preset) => {
+      const label = document.createElement('label');
+      label.className = 'check';
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = 'preset';
+      input.value = preset.key;
+      label.append(input, ` ${presetText(preset)}`);
+      container.append(label);
+    });
+    container.hidden = false;
+    timeTotal.hidden = true;
+  }
+
+  function presetText(preset) {
+    const minutes = toMinutes(preset.end) - toMinutes(preset.start);
+    return `${preset.label} ${preset.start}~${preset.end} (총 ${formatDuration(minutes)})`;
+  }
+
+  function selectedPreset() {
+    const checked = form.querySelector('input[name="preset"]:checked');
+    return checked ? state.timeRule.presets.find((p) => p.key === checked.value) : null;
+  }
+
   function loadTimeRule() {
     fetch(WEBAPP_URL)
       .then((res) => res.json())
       .then((rule) => {
-        if (!rule.ok || !rule.window) throw new Error();
+        if (!rule.ok) throw new Error();
+        if (rule.mode === 'preset' && rule.presets && rule.presets.length) setupPresetMode(rule);
+        else if (rule.mode === 'free' && rule.window) setupFreeMode(rule);
+        else throw new Error();
         state.timeRule = rule;
-        $('time-rule').textContent = `(${rule.window.start}~${rule.window.end}, 최대 ${formatDuration(rule.maxMinutes)})`;
-        const starts = [];
-        for (let t = toMinutes(rule.window.start); t < toMinutes(rule.window.end); t += rule.stepMinutes) starts.push(t);
-        fillOptions(startSelect, '시작', starts, null);
-        startSelect.disabled = false;
-        updateEndOptions();
         updateSubmitButton();
       })
       .catch(() => {
@@ -166,7 +201,11 @@
       return '생년월일을 예시처럼 입력해 주세요. (예: 95.03.12)';
     }
     if (!/^01[016789]-\d{3,4}-\d{4}$/.test(values.phone)) return '연락처를 확인해 주세요. (예: 010-1234-5678)';
-    if (!values.startTime || !values.endTime) return '활동 시작·종료 시각을 선택해 주세요.';
+    if (state.timeRule.mode === 'preset') {
+      if (!values.preset) return '활동시간(오전·오후·종일)을 선택해 주세요.';
+    } else if (!values.startTime || !values.endTime) {
+      return '활동 시작·종료 시각을 선택해 주세요.';
+    }
     if (!values.consent) return '개인정보 제공에 동의해야 제출할 수 있어요.';
     return '';
   }
@@ -178,9 +217,15 @@
       ['이름', values.name],
       ['생년월일', values.birth],
       ['연락처', values.phone],
-      ['활동시간', `${values.startTime}~${values.endTime} (총 ${formatDuration(selectedMinutes())})`],
+      ['활동시간', activityText()],
       ['개인정보 제공 동의', '동의'],
     ];
+  }
+
+  function activityText() {
+    const preset = selectedPreset();
+    if (preset) return presetText(preset);
+    return `${startSelect.value}~${endSelect.value} (총 ${formatDuration(selectedMinutes())})`;
   }
 
   // 사용자가 [제출하기]를 누르면 true로 끝나는 Promise
@@ -226,10 +271,16 @@
       name: $('name').value.trim(),
       birth: $('birth').value.trim(),
       phone: $('phone').value.trim(),
-      startTime: startSelect.value,
-      endTime: endSelect.value,
       consent: $('consent').checked,
     };
+    // 모드에 맞는 활동시간만 보낸다. (preset이면 시각은 서버가 스크립트 속성에서 정한다)
+    if (state.timeRule.mode === 'preset') {
+      const preset = selectedPreset();
+      values.preset = preset ? preset.key : '';
+    } else {
+      values.startTime = startSelect.value;
+      values.endTime = endSelect.value;
+    }
     const error = validate(values);
     showError(error);
     if (error) return;

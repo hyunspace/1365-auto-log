@@ -5,8 +5,12 @@
 // 비워 두면 이 값을 쓴다.
 const CONFIG_DEFAULTS = {
   GEOFENCE_RADIUS_M: '300',
+  TIME_MODE: 'free',
   ACTIVITY_WINDOW: '10:00~18:00',
-  MAX_ACTIVITY_HOURS: '4',
+  MAX_ACTIVITY_HOURS: '8',
+  TIME_MORNING: '10:00~14:00',
+  TIME_AFTERNOON: '14:00~18:00',
+  TIME_FULLDAY: '10:00~18:00',
   MAIL_SUBJECT: '[{org}] 자원봉사 활동일지 제출 ({start}~{end})',
   PDF_FILENAME: '{end}_{org}_활동일지.pdf',
   RETENTION_MONTHS: '3',
@@ -17,13 +21,17 @@ const CONFIG_VALIDATORS = {
   SHELTER_LAT: (v) => (isNumberInRange_(v, -90, 90) ? '' : '-90~90 사이 숫자여야 해요'),
   SHELTER_LNG: (v) => (isNumberInRange_(v, -180, 180) ? '' : '-180~180 사이 숫자여야 해요'),
   GEOFENCE_RADIUS_M: (v) => (isNumberInRange_(v, 1, 100000) ? '' : '1 이상의 숫자(m)여야 해요'),
-  ACTIVITY_WINDOW: (v) => (parseTimeRange_(v) ? '' : '10분 단위 HH:mm~HH:mm 형식이어야 해요 (예: 10:00~18:00)'),
+  TIME_MODE: (v) => (v === 'free' || v === 'preset' ? '' : 'free 또는 preset이어야 해요'),
+  ACTIVITY_WINDOW: timeRangeValidator_,
+  TIME_MORNING: timeRangeValidator_,
+  TIME_AFTERNOON: timeRangeValidator_,
+  TIME_FULLDAY: timeRangeValidator_,
   MAX_ACTIVITY_HOURS: (v) => (isNumberInRange_(v, 1, 24) && (Number(v) * 60) % 10 === 0 ? '' : '1~24 사이 숫자여야 해요 (10분 단위)'),
   RETENTION_MONTHS: (v) => (/^[1-9]\d*$/.test(v) ? '' : '1 이상의 정수여야 해요'),
 };
 
-// checkConfig()로 확인하는 키. 단계가 진행되면 늘린다.
-const BASIC_CONFIG_KEYS = ['SHEET_ID', 'SHELTER_LAT', 'SHELTER_LNG', 'GEOFENCE_RADIUS_M', 'ACTIVITY_WINDOW', 'MAX_ACTIVITY_HOURS'];
+// checkConfig()로 확인하는 키. 단계가 진행되면 늘린다. (활동시간 키는 TIME_MODE에 따라 따로 확인)
+const BASIC_CONFIG_KEYS = ['SHEET_ID', 'SHELTER_LAT', 'SHELTER_LNG', 'GEOFENCE_RADIUS_M'];
 
 let configCache_ = null;
 
@@ -66,10 +74,13 @@ function requireConfig_(keys) {
  */
 function checkConfig() {
   requireConfig_(BASIC_CONFIG_KEYS);
+  const rule = getActivityRule_();
   const ss = getSpreadsheet_();
-  Logger.log(
-    `설정 확인 완료: 시트 "${ss.getName()}", 활동 가능 시간 ${getConfig_('ACTIVITY_WINDOW')}, 최대 ${getConfig_('MAX_ACTIVITY_HOURS')}시간`
-  );
+  const timeText =
+    rule.mode === 'free'
+      ? `자유 선택 ${rule.window.start}~${rule.window.end}, 최대 ${rule.maxMinutes / 60}시간`
+      : rule.presets.map((p) => `${p.label} ${p.start}~${p.end}`).join(', ');
+  Logger.log(`설정 확인 완료: 시트 "${ss.getName()}", 활동시간 ${timeText}`);
 }
 
 function isNumberInRange_(value, min, max) {
@@ -82,6 +93,10 @@ function splitList_(value) {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+function timeRangeValidator_(v) {
+  return parseTimeRange_(v) ? '' : '10분 단위 HH:mm~HH:mm 형식이어야 해요 (예: 10:00~18:00)';
 }
 
 // "HH:mm"을 0시부터의 분으로 바꾼다. 형식이 틀리거나 10분 단위가 아니면 null.
