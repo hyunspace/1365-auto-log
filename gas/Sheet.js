@@ -94,6 +94,20 @@ function appendRecord_(name, record) {
   return rowNumber;
 }
 
+// 기존 행(rowNumber)의 일부 컬럼만 바꾼다. fields는 머리글 이름을 키로 하는 객체
+function updateRecord_(name, rowNumber, fields) {
+  const sheet = getSheet_(name);
+  const schema = SHEET_SCHEMAS[name];
+  Object.keys(fields).forEach((header) => {
+    const col = schema.headers.indexOf(header) + 1;
+    if (!col) throw new Error(`'${name}' 탭에 '${header}' 컬럼이 없어요.`);
+    sheet
+      .getRange(rowNumber, col)
+      .setNumberFormat(schema.numeric.includes(header) ? '0' : '@')
+      .setValue(fields[header]);
+  });
+}
+
 // 데이터 행을 머리글 이름을 키로 하는 객체 배열로 읽는다. _row에 시트 행 번호를 담는다.
 function readRecords_(name) {
   const sheet = getSheet_(name);

@@ -12,6 +12,7 @@ const CONFIG_DEFAULTS = {
   TIME_AFTERNOON: '14:00~18:00',
   TIME_FULLDAY: '10:00~18:00',
   MAIL_SUBJECT: '[{org}] 자원봉사 활동일지 제출 ({start}~{end})',
+  MAIL_BODY: '안녕하세요. {org}입니다.\\n{start}~{end} 자원봉사 활동일지({count}명)를 첨부해 보내드립니다.\\n확인 부탁드립니다.\\n\\n{org} 드림',
   PDF_FILENAME: '{end}_{org}_활동일지.pdf',
   RETENTION_MONTHS: '3',
 };
@@ -32,6 +33,7 @@ const CONFIG_VALIDATORS = {
   TELEGRAM_CHAT_ID: (v) => (/^-?\d+$/.test(v) ? '' : '숫자여야 해요 (그룹은 보통 -100으로 시작)'),
   ADMIN_USER_IDS: (v) => (splitList_(v).every((id) => /^\d+$/.test(id)) ? '' : '쉼표로 구분한 숫자 ID여야 해요'),
   WEBHOOK_SECRET: (v) => (/^[A-Za-z0-9_-]{16,256}$/.test(v) ? '' : '영문·숫자·_·- 16자 이상이어야 해요 (openssl rand -hex 24)'),
+  MAIL_TO: (v) => (/^[^@\s,]+@[^@\s,]+\.[^@\s,]+$/.test(v) ? '' : '메일 주소 하나여야 해요'),
   WEBAPP_URL: (v) => (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(v) ? '' : '웹앱 URL(https://script.google.com/macros/s/.../exec)이어야 해요'),
 };
 

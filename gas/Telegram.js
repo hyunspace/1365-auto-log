@@ -5,11 +5,20 @@
 // 처리한 update_id를 기억하는 시간(초). 텔레그램 재전송은 이 안에 들어온다. (CacheService 최대 6시간)
 const UPDATE_DEDUP_SEC = 21600;
 
-// 버튼 callback_data는 "동작:인자" 형식 (최대 64바이트). 동작별 처리 함수
-// 5단계 이후 'write'(작성하기), 'send'(전송하기) 등을 여기에 추가한다.
-const CALLBACK_HANDLERS = {
-  test: handleTestCallback_,
-};
+// 버튼 callback_data는 "동작:인자" 형식 (최대 64바이트). 동작별 처리 함수를 돌려준다.
+// 다른 파일의 함수는 파일 로드 순서와 상관없게 호출 시점에 찾는다.
+function callbackHandler_(action) {
+  switch (action) {
+    case 'test':
+      return handleTestCallback_;
+    case 'write':
+      return handleWriteCallback_;
+    case 'send':
+      return handleSendCallback_;
+    default:
+      return null;
+  }
+}
 
 /**
  * 편집기에서 수동 실행: 텔레그램 웹훅을 이 웹앱으로 등록한다.
@@ -107,7 +116,7 @@ function handleCallbackQuery_(query, updateId) {
     return;
   }
   const [action, arg] = String(query.data || '').split(':');
-  const handler = CALLBACK_HANDLERS[action];
+  const handler = callbackHandler_(action);
   if (!handler) {
     answerCallback_(query.id, '알 수 없는 버튼이에요.');
     return;

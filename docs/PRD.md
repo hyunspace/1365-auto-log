@@ -100,7 +100,7 @@
 
 ### 4.6 메일 발송
 
-- 쉼터 공용 Gmail 계정에서 `MAIL_TO`로 발송, 참조 `MAIL_CC`
+- 쉼터 공용 Gmail 계정에서 `MAIL_TO`로 발송(MailApp, 보낸편지함에 남음), 참조 `MAIL_CC`, 보내는 사람 이름은 `ORG_NAME`
 - 제목·본문·첨부파일명은 설정값 템플릿 사용. 치환 변수: `{start}`, `{end}`, `{count}`, `{sent_date}`
 - 최신 PDF 첨부 필수. 첨부가 없으면 발송하지 않고 오류 알림
 - 발송 성공 시 신청 행 진행상태 = `발송완료`, 주차 탭에 발송일시·처리자 기록
@@ -181,7 +181,7 @@
 **② 작성 완료** (PDF 첨부)
 
 ```
-활동일지를 작성했습니다. 확인 부탁드립니다. (총 7명, 1장)
+활동일지를 작성했습니다. 확인 부탁드립니다. (총 7명)
 ```
 
 **③ 발송 확인** (②에 이어서)
@@ -272,7 +272,7 @@ Apps Script 시간 기반 트리거는 1시간 범위로 실행된다. 스크립
 | `MAIL_TO`                        | manager@example.com                              | 수신자                 |
 | `MAIL_CC`                        | a@…,b@…                                        | 참조                   |
 | `MAIL_SUBJECT`                   | [{org}] 자원봉사 활동일지 제출 ({start}~{end}) | 제목 템플릿            |
-| `MAIL_BODY`                      |                                                | 본문 템플릿            |
+| `MAIL_BODY`                      | 비우면 기본 문구                               | 본문 템플릿 (줄바꿈은 `\n`) |
 | `PDF_FILENAME`                   | {end}_{org}_활동일지.pdf                       | 첨부파일명 템플릿      |
 | `RETENTION_MONTHS`               | 3                                              | 파기 기준              |
 
@@ -325,6 +325,7 @@ shelter-volunteer/
 │   ├── Telegram.js      # 메시지·버튼·콜백
 │   ├── Nlu.js           # LLM 자연어 → 명령
 │   ├── Mail.js          # 메일 발송
+│   ├── Week.js          # 주차 진행: 마감 알림, 작성·전송 버튼, 날짜·주차 계산
 │   ├── Triggers.js      # 주간·재알림·파기
 │   └── Config.js        # Script Properties 읽기
 └── README.md            # 초기 설정 절차

@@ -85,7 +85,7 @@ docs/   PRD
 | `MAIL_TO` | | 수신자 (자원봉사센터 담당자) |
 | `MAIL_CC` | `a@…,b@…` | 참조 |
 | `MAIL_SUBJECT` | `[{org}] 자원봉사 활동일지 제출 ({start}~{end})` | 제목 템플릿 |
-| `MAIL_BODY` | | 본문 템플릿 |
+| `MAIL_BODY` | 비우면 기본 문구 | 본문 템플릿 (줄바꿈은 `\n`으로 적기) |
 | `PDF_FILENAME` | `{end}_{org}_활동일지.pdf` | 첨부파일명 템플릿 |
 | `RETENTION_MONTHS` | `3` | 개인정보 보관 개월 수 |
 
