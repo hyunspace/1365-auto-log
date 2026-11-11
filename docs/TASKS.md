@@ -36,11 +36,11 @@
 
 ## 2. 봉사자 폼과 제출 처리 (`form`, `gas`)
 
-- [ ] 🤖 `Main.js`: `doGet`(TIME_SLOTS 반환) / `doPost` 라우팅 (`update_id` 유무로 웹훅·폼 구분)
-- [ ] 🤖 `Form.js`: 하버사인 거리 검증, 중복 체크(봉사일자+이름+생년월일), 레이트 리밋, 행 추가
-- [ ] 🤖 `web/`: 입력 폼, 위치 권한 요청, 형식 검증, `text/plain` POST, 완료·실패 화면
+- [x] 🤖 `Main.js`: `doGet`(TIME_SLOTS 반환) / `doPost` 라우팅 (`update_id` 유무로 웹훅·폼 구분)
+- [x] 🤖 `Form.js`: 하버사인 거리 검증, 중복 체크(봉사일자+이름+생년월일), 레이트 리밋, 행 추가
+- [x] 🤖 `web/`: 입력 폼, 위치 권한 요청, 형식 검증, `text/plain` POST, 완료·실패 화면
 - [ ] 🙋 웹앱 배포 (실행: 나 / 액세스: 모든 사용자), URL을 `web/config.js`에 입력
-- [ ] 🙋 Vercel 또는 GitHub Pages로 폼 호스팅, QR 만들기
+- [ ] 🙋 Vercel로 폼 호스팅 (Root Directory `web`, 환경변수 `WEBAPP_URL`), QR 만들기
 - [ ] 🙋 `clasp deploy -i <배포ID>`로 URL 유지되는지 확인
 
 **확인 (폰으로 현장 테스트)**: 쉼터 안 제출 성공 / 반경 밖 거부 / 위치 거부 시 버튼 비활성 / 같은 사람 재제출 거부.
@@ -128,12 +128,12 @@
 
 **현재 상태 (이어서 작업할 때 먼저 읽기)**
 
-- 1단계까지 끝났습니다 (시트 탭 생성 확인, `TIME_SLOTS`는 기본값 사용). 나머지 `gas/` 파일은 역할만 적은 빈 파일이고, `web/`은 최소 골격입니다. 다음 🤖 작업은 2단계(`Main.js`, `Form.js`, `web/`)입니다.
+- 2단계 🤖 항목(`Main.js`, `Form.js`, `web/`)까지 끝났습니다. 남은 2단계 작업은 웹앱 배포, Vercel 호스팅, 현장 테스트(🙋)입니다. 텔레그램 웹훅(`update_id`)은 지금은 받기만 하고 무시하며 3단계에서 연결합니다.
 - **clasp 연결**: `.clasp.json.example`을 `.clasp.json`으로 복사하고 `scriptId`를 채웁니다. `rootDir`가 `gas`라서 `web/`은 Apps Script에 올라가지 않습니다. 이 파일은 `.gitignore` 대상입니다.
 - **clasp 로그인**: 레포 안의 `.clasprc.json`에 공용 계정 토큰을 저장합니다 (`npx @google/clasp -A .clasprc.json login`). 이후 명령도 `-A .clasprc.json`을 붙이고, 매니페스트 확인 프롬프트 때문에 push는 `push --force`로 합니다. 이 파일도 `.gitignore` 대상입니다.
 - **폼 설정**: `web/config.example.js`를 `web/config.js`로 복사해 웹앱 URL을 넣습니다. 이 파일도 `.gitignore` 대상입니다.
 - **appsscript.json 선반영**: 웹앱 접근 설정(나로 실행 / 모든 사용자)은 4단계가 아닌 2단계 배포 설정을 미리 넣어 둔 것입니다. 시간대는 `Asia/Seoul`입니다.
-- **미해결 (2단계에서 결정)**: GitHub Pages로 폼을 호스팅하면 `config.js`가 `.gitignore` 대상이라 배포 시점에 그 파일이 없을 수 있습니다. 호스팅 방식(Vercel 환경변수·빌드 단계 / `config.js` 별도 배포 / 웹앱 URL을 공개 값으로 보고 커밋)을 2단계 시작 전에 정합니다.
+- **폼 호스팅 (결정: Vercel)**: Vercel 프로젝트의 Root Directory를 `web`으로 두고 환경변수 `WEBAPP_URL`을 넣으면, 빌드 단계(`web/vercel.json` → `web/build-config.js`)가 `config.js`를 만듭니다. 레포에는 웹앱 URL이 남지 않습니다. 로컬 테스트는 `web/config.example.js`를 `web/config.js`로 복사해서 씁니다.
 
 **공통**
 

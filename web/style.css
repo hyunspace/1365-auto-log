@@ -1,1 +1,137 @@
-/* TODO(2단계): 폼 스타일 */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  background: #f6f7f9;
+  color: #1f2328;
+  line-height: 1.5;
+}
+
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 0 0 16px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin: 16px 0 6px;
+}
+
+input[type="text"],
+input:not([type]),
+input[type="tel"] {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #c9ced6;
+  border-radius: 8px;
+  background: #fff;
+}
+
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 16px 0 0;
+}
+
+legend {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  margin: 8px 0;
+}
+
+label.check input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+.consent {
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e1e4e8;
+  font-size: 0.9rem;
+}
+
+.consent p {
+  margin: 0 0 8px;
+}
+
+button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 0;
+  border-radius: 8px;
+  background: #2f6f4f;
+  color: #fff;
+}
+
+button:disabled {
+  background: #a8b3ad;
+}
+
+button.secondary {
+  margin-top: 0;
+  background: #fff;
+  color: #2f6f4f;
+  border: 1px solid #2f6f4f;
+}
+
+.status {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #eef1f4;
+  margin: 0 0 12px;
+}
+
+.status.ok {
+  background: #e3f2e9;
+  color: #1e5b3c;
+}
+
+.status.error {
+  background: #fdecea;
+  color: #a1281c;
+}
+
+.error {
+  color: #a1281c;
+}
+
+.hint {
+  color: #6a737d;
+  margin: 0;
+}
+
+#done-view {
+  text-align: center;
+  padding-top: 40px;
+}
+
+.done-mark {
+  font-size: 3rem;
+  color: #2f6f4f;
+  margin: 0;
+}
