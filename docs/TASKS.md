@@ -27,10 +27,10 @@
 
 ## 1. 시트 구조와 설정 (`gas`, `sheet`)
 
-- [ ] 🤖 `Config.js`: Script Properties 읽기, 필수값 누락 시 오류 알림
-- [ ] 🤖 `Sheet.js` + `setupSheets()`: 신청 / 주차 / 대화상태 / 처리로그 탭과 컬럼 생성 (생년월일·연락처는 텍스트 서식)
-- [ ] 🙋 Script Properties 1차 입력: `SHEET_ID`, `SHELTER_LAT/LNG`, `GEOFENCE_RADIUS_M`, `TIME_SLOTS`
-- [ ] 🙋 `setupSheets()` 수동 실행, 권한 승인
+- [x] 🤖 `Config.js`: Script Properties 읽기, 필수값 누락 시 오류 알림
+- [x] 🤖 `Sheet.js` + `setupSheets()`: 신청 / 주차 / 대화상태 / 처리로그 탭과 컬럼 생성 (생년월일·연락처는 텍스트 서식)
+- [x] 🙋 Script Properties 1차 입력: `SHEET_ID`, `SHELTER_LAT/LNG`, `GEOFENCE_RADIUS_M`, `TIME_SLOTS`
+- [x] 🙋 `setupSheets()` 수동 실행, 권한 승인
 
 **확인**: 시트에 탭 4개와 컬럼이 생기고, 값을 하나 지우면 오류가 뜬다.
 
@@ -128,8 +128,9 @@
 
 **현재 상태 (이어서 작업할 때 먼저 읽기)**
 
-- 0단계의 🤖 항목은 끝났습니다. `gas/`의 `.js` 파일은 역할만 적은 빈 파일이고, `web/`은 최소 골격입니다. 다음 🤖 작업은 1단계(`Config.js`, `Sheet.js`, `setupSheets()`)입니다.
+- 1단계까지 끝났습니다 (시트 탭 생성 확인, `TIME_SLOTS`는 기본값 사용). 나머지 `gas/` 파일은 역할만 적은 빈 파일이고, `web/`은 최소 골격입니다. 다음 🤖 작업은 2단계(`Main.js`, `Form.js`, `web/`)입니다.
 - **clasp 연결**: `.clasp.json.example`을 `.clasp.json`으로 복사하고 `scriptId`를 채웁니다. `rootDir`가 `gas`라서 `web/`은 Apps Script에 올라가지 않습니다. 이 파일은 `.gitignore` 대상입니다.
+- **clasp 로그인**: 레포 안의 `.clasprc.json`에 공용 계정 토큰을 저장합니다 (`npx @google/clasp -A .clasprc.json login`). 이후 명령도 `-A .clasprc.json`을 붙이고, 매니페스트 확인 프롬프트 때문에 push는 `push --force`로 합니다. 이 파일도 `.gitignore` 대상입니다.
 - **폼 설정**: `web/config.example.js`를 `web/config.js`로 복사해 웹앱 URL을 넣습니다. 이 파일도 `.gitignore` 대상입니다.
 - **appsscript.json 선반영**: 웹앱 접근 설정(나로 실행 / 모든 사용자)은 4단계가 아닌 2단계 배포 설정을 미리 넣어 둔 것입니다. 시간대는 `Asia/Seoul`입니다.
 - **미해결 (2단계에서 결정)**: GitHub Pages로 폼을 호스팅하면 `config.js`가 `.gitignore` 대상이라 배포 시점에 그 파일이 없을 수 있습니다. 호스팅 방식(Vercel 환경변수·빌드 단계 / `config.js` 별도 배포 / 웹앱 URL을 공개 값으로 보고 커밋)을 2단계 시작 전에 정합니다.
