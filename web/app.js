@@ -311,7 +311,7 @@
           showError(result.message || '제출하지 못했어요.');
           return;
         }
-        $('done-message').textContent = `${result.name}님, ${result.date} 봉사 신청이 접수됐어요.`;
+        $('done-message').textContent = `${result.name}님, ${result.date} 활동일지가 제출됐어요.`;
         $('form-view').hidden = true;
         $('done-view').hidden = false;
       })

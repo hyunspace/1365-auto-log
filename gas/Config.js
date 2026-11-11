@@ -20,7 +20,7 @@ const CONFIG_DEFAULTS = {
 const CONFIG_VALIDATORS = {
   SHELTER_LAT: (v) => (isNumberInRange_(v, -90, 90) ? '' : '-90~90 사이 숫자여야 해요'),
   SHELTER_LNG: (v) => (isNumberInRange_(v, -180, 180) ? '' : '-180~180 사이 숫자여야 해요'),
-  GEOFENCE_RADIUS_M: (v) => (isNumberInRange_(v, 1, 100000) ? '' : '1 이상의 숫자(m)여야 해요'),
+  GEOFENCE_RADIUS_M: (v) => (isNumberInRange_(v, 1, 100000) ? '' : '1~100000 사이 숫자(m)여야 해요'),
   TIME_MODE: (v) => (v === 'free' || v === 'preset' ? '' : 'free 또는 preset이어야 해요'),
   ACTIVITY_WINDOW: timeRangeValidator_,
   TIME_MORNING: timeRangeValidator_,
