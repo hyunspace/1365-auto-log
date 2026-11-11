@@ -6,7 +6,7 @@
 const UPDATE_DEDUP_SEC = 21600;
 
 // 버튼 callback_data는 "동작:인자" 형식 (최대 64바이트). 동작별 처리 함수
-// 4단계 이후 'write'(작성하기), 'send'(전송하기) 등을 여기에 추가한다.
+// 5단계 이후 'write'(작성하기), 'send'(전송하기) 등을 여기에 추가한다.
 const CALLBACK_HANDLERS = {
   test: handleTestCallback_,
 };
