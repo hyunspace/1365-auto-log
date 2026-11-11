@@ -67,7 +67,8 @@ docs/   PRD
 | `LLM_MODEL` | | 사용할 모델명 |
 | `SHELTER_LAT` / `SHELTER_LNG` | `37.5…` / `126.7…` | 쉼터 좌표 |
 | `GEOFENCE_RADIUS_M` | `300` | 허용 반경(m) |
-| `TIME_SLOTS` | `10:00~14:00,14:00~18:00` | 활동시간 선택지 |
+| `ACTIVITY_WINDOW` | `10:00~18:00` | 활동 시작·종료 시각을 고를 수 있는 범위 (10분 단위) |
+| `MAX_ACTIVITY_HOURS` | `4` | 한 번에 신청할 수 있는 최대 활동시간 |
 | `ORG_NAME` | `○○쉼터` | 활동기관·기관명 |
 | `ACTIVITY_DESC` | | 활동내용(공통) |
 | `MANAGER_NAME` / `MANAGER_PHONE` | | 담당자·연락처 |
@@ -104,7 +105,7 @@ docs/   PRD
 
 ### 6. 폼 호스팅
 
-`web/` 폴더를 Vercel 또는 GitHub Pages로 올립니다. 폼에는 웹앱 URL만 들어가며, 활동시간 선택지는 웹앱 `doGet`에서 내려받으므로 폼을 고치지 않아도 됩니다. 쉼터 현장에 붙일 QR코드는 배포된 폼 주소로 만드세요.
+`web/` 폴더를 Vercel로 올립니다. Vercel 프로젝트의 Root Directory를 `web`으로 두고 환경변수 `WEBAPP_URL`에 웹앱 URL을 넣으면, 빌드 단계에서 `config.js`가 만들어집니다. 활동시간 선택 범위는 웹앱 `doGet`에서 내려받으므로 폼을 고치지 않아도 됩니다. 쉼터 현장에 붙일 QR코드는 배포된 폼 주소로 만드세요.
 
 ## 텔레그램 설정
 

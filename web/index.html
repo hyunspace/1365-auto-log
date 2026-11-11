@@ -25,8 +25,17 @@
         <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="010-1234-5678" maxlength="13" required>
 
         <fieldset>
-          <legend>활동시간</legend>
-          <div id="time-slots"><p class="hint">불러오는 중…</p></div>
+          <legend>활동시간 <span id="time-rule" class="hint"></span></legend>
+          <div class="time-row">
+            <select id="start-time" aria-label="시작 시각" required disabled>
+              <option value="">시작</option>
+            </select>
+            <span>~</span>
+            <select id="end-time" aria-label="종료 시각" required disabled>
+              <option value="">종료</option>
+            </select>
+          </div>
+          <p id="time-total" class="hint">불러오는 중…</p>
         </fieldset>
 
         <!-- 활동일지 양식 하단의 개인정보 제공 동의 문구를 그대로 옮겨 적는다 (PRD 4.1) -->
@@ -45,6 +54,16 @@
         <button type="submit" id="submit" disabled>제출하기</button>
       </form>
     </section>
+
+    <dialog id="confirm-dialog" aria-labelledby="confirm-title">
+      <h2 id="confirm-title">제출 내용 확인</h2>
+      <dl id="confirm-summary"></dl>
+      <p>위 내용으로 제출하시겠습니까?<br><strong>제출 후에는 수정할 수 없습니다.</strong></p>
+      <div class="dialog-buttons">
+        <button type="button" id="confirm-cancel" class="secondary">취소</button>
+        <button type="button" id="confirm-ok">제출하기</button>
+      </div>
+    </dialog>
 
     <section id="done-view" hidden>
       <p class="done-mark">✓</p>

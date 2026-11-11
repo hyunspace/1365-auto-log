@@ -4,9 +4,16 @@
 
 const TIME_ZONE = 'Asia/Seoul';
 
-// 폼이 처음 열릴 때 활동시간 선택지를 내려받는다.
+// 폼이 처음 열릴 때 활동시간 선택 범위를 내려받는다.
 function doGet() {
-  return jsonResponse_({ ok: true, timeSlots: getConfigList_('TIME_SLOTS') });
+  const config = requireConfig_(['ACTIVITY_WINDOW', 'MAX_ACTIVITY_HOURS']);
+  const [start, end] = config.ACTIVITY_WINDOW.split('~').map((s) => s.trim());
+  return jsonResponse_({
+    ok: true,
+    window: { start, end },
+    maxMinutes: Number(config.MAX_ACTIVITY_HOURS) * 60,
+    stepMinutes: TIME_STEP_MINUTES,
+  });
 }
 
 function doPost(e) {

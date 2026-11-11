@@ -8,11 +8,16 @@
   const locationStatus = $('location-status');
   const retryButton = $('retry-location');
   const formError = $('form-error');
+  const startSelect = $('start-time');
+  const endSelect = $('end-time');
+  const timeTotal = $('time-total');
+  const dialog = $('confirm-dialog');
 
-  const state = { position: null, slotsLoaded: false, sending: false };
+  // timeRule: 서버 doGet이 내려주는 { window: {start, end}, maxMinutes, stepMinutes }
+  const state = { position: null, timeRule: null, sending: false };
 
   function updateSubmitButton() {
-    submitButton.disabled = !(state.position && state.slotsLoaded) || state.sending;
+    submitButton.disabled = !(state.position && state.timeRule) || state.sending;
   }
 
   function showError(message) {
@@ -59,34 +64,83 @@
 
   retryButton.addEventListener('click', checkLocation);
 
-  // ---------- 활동시간 ----------
+  // ---------- 활동시간 (시작·종료 시각 선택) ----------
 
-  function loadTimeSlots() {
-    const container = $('time-slots');
+  function toMinutes(hhmm) {
+    const [h, m] = hhmm.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  function toHHMM(minutes) {
+    const h = String(Math.floor(minutes / 60)).padStart(2, '0');
+    const m = String(minutes % 60).padStart(2, '0');
+    return `${h}:${m}`;
+  }
+
+  function formatDuration(minutes) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (!h) return `${m}분`;
+    return m ? `${h}시간 ${m}분` : `${h}시간`;
+  }
+
+  function fillOptions(select, placeholder, values, selected) {
+    select.innerHTML = '';
+    select.append(new Option(placeholder, ''));
+    values.forEach((v) => select.append(new Option(toHHMM(v), toHHMM(v))));
+    select.value = values.includes(selected) ? toHHMM(selected) : '';
+  }
+
+  // 시작 시각에 맞춰 종료 시각 선택지를 (시작+10분 ~ 시작+최대시간, 활동 가능 시간 안) 다시 만든다.
+  function updateEndOptions() {
+    const rule = state.timeRule;
+    const previousEnd = endSelect.value ? toMinutes(endSelect.value) : null;
+    if (!startSelect.value) {
+      fillOptions(endSelect, '종료', [], null);
+      endSelect.disabled = true;
+    } else {
+      const start = toMinutes(startSelect.value);
+      const last = Math.min(start + rule.maxMinutes, toMinutes(rule.window.end));
+      const ends = [];
+      for (let t = start + rule.stepMinutes; t <= last; t += rule.stepMinutes) ends.push(t);
+      fillOptions(endSelect, '종료', ends, previousEnd);
+      endSelect.disabled = false;
+    }
+    updateTimeTotal();
+  }
+
+  function updateTimeTotal() {
+    const minutes = selectedMinutes();
+    timeTotal.textContent = minutes ? `총 ${formatDuration(minutes)}` : '시작 시각과 종료 시각을 선택해 주세요.';
+  }
+
+  function selectedMinutes() {
+    if (!startSelect.value || !endSelect.value) return 0;
+    return toMinutes(endSelect.value) - toMinutes(startSelect.value);
+  }
+
+  function loadTimeRule() {
     fetch(WEBAPP_URL)
       .then((res) => res.json())
-      .then((data) => {
-        if (!data.ok || !data.timeSlots || !data.timeSlots.length) throw new Error();
-        container.innerHTML = '';
-        data.timeSlots.forEach((slot, i) => {
-          const label = document.createElement('label');
-          label.className = 'check';
-          const input = document.createElement('input');
-          input.type = 'radio';
-          input.name = 'timeSlot';
-          input.value = slot;
-          input.required = true;
-          if (data.timeSlots.length === 1 && i === 0) input.checked = true;
-          label.append(input, ' ' + slot);
-          container.append(label);
-        });
-        state.slotsLoaded = true;
+      .then((rule) => {
+        if (!rule.ok || !rule.window) throw new Error();
+        state.timeRule = rule;
+        $('time-rule').textContent = `(${rule.window.start}~${rule.window.end}, 최대 ${formatDuration(rule.maxMinutes)})`;
+        const starts = [];
+        for (let t = toMinutes(rule.window.start); t < toMinutes(rule.window.end); t += rule.stepMinutes) starts.push(t);
+        fillOptions(startSelect, '시작', starts, null);
+        startSelect.disabled = false;
+        updateEndOptions();
         updateSubmitButton();
       })
       .catch(() => {
-        container.innerHTML = '<p class="error">활동시간을 불러오지 못했어요. 새로고침해 주세요.</p>';
+        timeTotal.textContent = '활동시간을 불러오지 못했어요. 새로고침해 주세요.';
+        timeTotal.className = 'error';
       });
   }
+
+  startSelect.addEventListener('change', updateEndOptions);
+  endSelect.addEventListener('change', updateTimeTotal);
 
   // ---------- 입력 형식 (입력하는 동안 . 과 - 를 자동으로 넣는다) ----------
 
@@ -112,9 +166,54 @@
       return '생년월일을 예시처럼 입력해 주세요. (예: 95.03.12)';
     }
     if (!/^01[016789]-\d{3,4}-\d{4}$/.test(values.phone)) return '연락처를 확인해 주세요. (예: 010-1234-5678)';
-    if (!values.timeSlot) return '활동시간을 선택해 주세요.';
+    if (!values.startTime || !values.endTime) return '활동 시작·종료 시각을 선택해 주세요.';
     if (!values.consent) return '개인정보 제공에 동의해야 제출할 수 있어요.';
     return '';
+  }
+
+  // ---------- 제출 전 확인 팝업 ----------
+
+  function summaryRows(values) {
+    return [
+      ['이름', values.name],
+      ['생년월일', values.birth],
+      ['연락처', values.phone],
+      ['활동시간', `${values.startTime}~${values.endTime} (총 ${formatDuration(selectedMinutes())})`],
+      ['개인정보 제공 동의', '동의'],
+    ];
+  }
+
+  // 사용자가 [제출하기]를 누르면 true로 끝나는 Promise
+  function confirmSubmission(values) {
+    const rows = summaryRows(values);
+    if (typeof dialog.showModal !== 'function') {
+      const text = rows.map(([k, v]) => `${k}: ${v}`).join('\n');
+      return Promise.resolve(window.confirm(`${text}\n\n위 내용으로 제출하시겠습니까?\n제출 후에는 수정할 수 없습니다.`));
+    }
+
+    const summary = $('confirm-summary');
+    summary.innerHTML = '';
+    rows.forEach(([k, v]) => {
+      const dt = document.createElement('dt');
+      dt.textContent = k;
+      const dd = document.createElement('dd');
+      dd.textContent = v;
+      summary.append(dt, dd);
+    });
+
+    return new Promise((resolve) => {
+      const finish = (ok) => {
+        $('confirm-ok').onclick = null;
+        $('confirm-cancel').onclick = null;
+        dialog.onclose = null;
+        if (dialog.open) dialog.close();
+        resolve(ok);
+      };
+      $('confirm-ok').onclick = () => finish(true);
+      $('confirm-cancel').onclick = () => finish(false);
+      dialog.onclose = () => finish(false); // ESC, 뒤로가기 등
+      dialog.showModal();
+    });
   }
 
   // ---------- 제출 ----------
@@ -123,18 +222,24 @@
     e.preventDefault();
     if (state.sending) return;
 
-    const checked = form.querySelector('input[name="timeSlot"]:checked');
     const values = {
       name: $('name').value.trim(),
       birth: $('birth').value.trim(),
       phone: $('phone').value.trim(),
-      timeSlot: checked ? checked.value : '',
+      startTime: startSelect.value,
+      endTime: endSelect.value,
       consent: $('consent').checked,
     };
     const error = validate(values);
     showError(error);
     if (error) return;
 
+    confirmSubmission(values).then((ok) => {
+      if (ok) send(values);
+    });
+  });
+
+  function send(values) {
     state.sending = true;
     submitButton.textContent = '제출하는 중…';
     updateSubmitButton();
@@ -146,9 +251,7 @@
         return fetch(WEBAPP_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(
-            Object.assign(values, { lat: pos.coords.latitude, lng: pos.coords.longitude })
-          ),
+          body: JSON.stringify(Object.assign({}, values, { lat: pos.coords.latitude, lng: pos.coords.longitude })),
         });
       })
       .then((res) => res.json())
@@ -167,13 +270,13 @@
         submitButton.textContent = '제출하기';
         updateSubmitButton();
       });
-  });
+  }
 
   if (!WEBAPP_URL) {
     locationStatus.textContent = '설정 오류: 웹앱 URL이 없어요. (config.js 확인)';
     locationStatus.className = 'status error';
     return;
   }
-  loadTimeSlots();
+  loadTimeRule();
   checkLocation();
 })();

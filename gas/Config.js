@@ -5,7 +5,8 @@
 // 비워 두면 이 값을 쓴다.
 const CONFIG_DEFAULTS = {
   GEOFENCE_RADIUS_M: '300',
-  TIME_SLOTS: '10:00~14:00,14:00~18:00',
+  ACTIVITY_WINDOW: '10:00~18:00',
+  MAX_ACTIVITY_HOURS: '4',
   MAIL_SUBJECT: '[{org}] 자원봉사 활동일지 제출 ({start}~{end})',
   PDF_FILENAME: '{end}_{org}_활동일지.pdf',
   RETENTION_MONTHS: '3',
@@ -16,12 +17,13 @@ const CONFIG_VALIDATORS = {
   SHELTER_LAT: (v) => (isNumberInRange_(v, -90, 90) ? '' : '-90~90 사이 숫자여야 해요'),
   SHELTER_LNG: (v) => (isNumberInRange_(v, -180, 180) ? '' : '-180~180 사이 숫자여야 해요'),
   GEOFENCE_RADIUS_M: (v) => (isNumberInRange_(v, 1, 100000) ? '' : '1 이상의 숫자(m)여야 해요'),
-  TIME_SLOTS: (v) => (splitList_(v).length ? '' : '쉼표로 구분한 활동시간이 하나 이상 있어야 해요'),
+  ACTIVITY_WINDOW: (v) => (parseTimeRange_(v) ? '' : '10분 단위 HH:mm~HH:mm 형식이어야 해요 (예: 10:00~18:00)'),
+  MAX_ACTIVITY_HOURS: (v) => (isNumberInRange_(v, 1, 24) && (Number(v) * 60) % 10 === 0 ? '' : '1~24 사이 숫자여야 해요 (10분 단위)'),
   RETENTION_MONTHS: (v) => (/^[1-9]\d*$/.test(v) ? '' : '1 이상의 정수여야 해요'),
 };
 
 // checkConfig()로 확인하는 키. 단계가 진행되면 늘린다.
-const BASIC_CONFIG_KEYS = ['SHEET_ID', 'SHELTER_LAT', 'SHELTER_LNG', 'GEOFENCE_RADIUS_M', 'TIME_SLOTS'];
+const BASIC_CONFIG_KEYS = ['SHEET_ID', 'SHELTER_LAT', 'SHELTER_LNG', 'GEOFENCE_RADIUS_M', 'ACTIVITY_WINDOW', 'MAX_ACTIVITY_HOURS'];
 
 let configCache_ = null;
 
@@ -31,7 +33,7 @@ function getConfig_(key) {
   return value || CONFIG_DEFAULTS[key] || '';
 }
 
-// 쉼표 구분 값을 배열로 읽는다. (TIME_SLOTS, ADMIN_USER_IDS, MAIL_CC 등)
+// 쉼표 구분 값을 배열로 읽는다. (ADMIN_USER_IDS, MAIL_CC 등)
 function getConfigList_(key) {
   return splitList_(getConfig_(key));
 }
@@ -65,7 +67,9 @@ function requireConfig_(keys) {
 function checkConfig() {
   requireConfig_(BASIC_CONFIG_KEYS);
   const ss = getSpreadsheet_();
-  Logger.log(`설정 확인 완료: 시트 "${ss.getName()}", 활동시간 ${getConfigList_('TIME_SLOTS').join(' / ')}`);
+  Logger.log(
+    `설정 확인 완료: 시트 "${ss.getName()}", 활동 가능 시간 ${getConfig_('ACTIVITY_WINDOW')}, 최대 ${getConfig_('MAX_ACTIVITY_HOURS')}시간`
+  );
 }
 
 function isNumberInRange_(value, min, max) {
@@ -78,4 +82,21 @@ function splitList_(value) {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+// "HH:mm"을 0시부터의 분으로 바꾼다. 형식이 틀리거나 10분 단위가 아니면 null.
+function parseTime_(value) {
+  const m = String(value || '').match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+  if (!m) return null;
+  const minutes = Number(m[1]) * 60 + Number(m[2]);
+  return minutes % 10 === 0 ? minutes : null;
+}
+
+// "HH:mm~HH:mm"을 {start, end}(분)로 바꾼다. 시작이 종료보다 늦거나 형식이 틀리면 null.
+function parseTimeRange_(value) {
+  const parts = String(value || '').split('~').map((s) => s.trim());
+  if (parts.length !== 2) return null;
+  const start = parseTime_(parts[0]);
+  const end = parseTime_(parts[1]);
+  return start !== null && end !== null && start < end ? { start, end } : null;
 }

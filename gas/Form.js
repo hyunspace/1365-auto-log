@@ -6,6 +6,9 @@
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_SEC = 600;
 
+// 활동 시작·종료 시각은 이 단위(분)로만 고를 수 있다.
+const TIME_STEP_MINUTES = 10;
+
 // 첫 글자는 반드시 문자 (수식으로 해석될 수 있는 =, +, - 등으로 시작하지 않게)
 const NAME_PATTERN = /^[가-힣a-zA-Z][가-힣a-zA-Z .-]{0,19}$/;
 const BIRTH_PATTERN = /^(\d{2})\.(\d{2})\.(\d{2})$/;
@@ -50,7 +53,7 @@ function handleFormSubmit_(data) {
         이름: input.name,
         생년월일: input.birth,
         연락처: input.phone,
-        활동시간: input.timeSlot,
+        활동시간: input.activityTime,
         정보제공동의: 'Y',
         진행상태: '접수',
         작성일시: formatKst_(now, 'yyyy-MM-dd HH:mm:ss'),
@@ -86,8 +89,7 @@ function validateSubmission_(data) {
   if (!p) throw new Error('연락처를 확인해 주세요. (예: 010-1234-5678)');
   const phone = `${p[1]}-${p[2]}-${p[3]}`;
 
-  const timeSlot = String(data.timeSlot || '');
-  if (!getConfigList_('TIME_SLOTS').includes(timeSlot)) throw new Error('활동시간을 선택해 주세요.');
+  const activityTime = validateActivityTime_(data.startTime, data.endTime);
 
   if (data.consent !== true) throw new Error('개인정보 제공에 동의해야 제출할 수 있어요.');
 
@@ -97,7 +99,24 @@ function validateSubmission_(data) {
     throw new Error('위치를 확인할 수 없어요. 위치 권한을 허용해 주세요.');
   }
 
-  return { name, birth, phone, timeSlot, lat, lng };
+  return { name, birth, phone, activityTime, lat, lng };
+}
+
+// 시작·종료 시각이 활동 가능 시간 안이고, 10분 단위이며, 최대 시간 이하인지 확인한다.
+function validateActivityTime_(startTime, endTime) {
+  const config = requireConfig_(['ACTIVITY_WINDOW', 'MAX_ACTIVITY_HOURS']);
+  const window = parseTimeRange_(config.ACTIVITY_WINDOW);
+  const start = parseTime_(startTime);
+  const end = parseTime_(endTime);
+  if (start === null || end === null) throw new Error('활동 시작·종료 시각을 선택해 주세요.');
+  if (start < window.start || end > window.end) {
+    throw new Error(`활동시간은 ${config.ACTIVITY_WINDOW} 사이로 선택해 주세요.`);
+  }
+  if (end <= start) throw new Error('종료 시각은 시작 시각보다 늦어야 해요.');
+  if (end - start > Number(config.MAX_ACTIVITY_HOURS) * 60) {
+    throw new Error(`활동시간은 최대 ${config.MAX_ACTIVITY_HOURS}시간까지 선택할 수 있어요.`);
+  }
+  return `${startTime}~${endTime}`;
 }
 
 // 시도 횟수를 세고 한도를 넘었는지 돌려준다. 캐시 키에는 연락처 대신 해시를 쓴다.

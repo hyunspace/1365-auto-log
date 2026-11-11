@@ -29,21 +29,29 @@
 
 - [x] 🤖 `Config.js`: Script Properties 읽기, 필수값 누락 시 오류 알림
 - [x] 🤖 `Sheet.js` + `setupSheets()`: 신청 / 주차 / 대화상태 / 처리로그 탭과 컬럼 생성 (생년월일·연락처는 텍스트 서식)
-- [x] 🙋 Script Properties 1차 입력: `SHEET_ID`, `SHELTER_LAT/LNG`, `GEOFENCE_RADIUS_M`, `TIME_SLOTS`
+- [x] 🙋 Script Properties 1차 입력: `SHEET_ID`, `SHELTER_LAT/LNG`, `GEOFENCE_RADIUS_M`, `ACTIVITY_WINDOW`, `MAX_ACTIVITY_HOURS` (뒤의 셋은 비우면 기본값)
 - [x] 🙋 `setupSheets()` 수동 실행, 권한 승인
 
 **확인**: 시트에 탭 4개와 컬럼이 생기고, 값을 하나 지우면 오류가 뜬다.
 
 ## 2. 봉사자 폼과 제출 처리 (`form`, `gas`)
 
-- [x] 🤖 `Main.js`: `doGet`(TIME_SLOTS 반환) / `doPost` 라우팅 (`update_id` 유무로 웹훅·폼 구분)
+- [x] 🤖 `Main.js`: `doGet`(활동시간 선택 범위 반환) / `doPost` 라우팅 (`update_id` 유무로 웹훅·폼 구분)
 - [x] 🤖 `Form.js`: 하버사인 거리 검증, 중복 체크(봉사일자+이름+생년월일), 레이트 리밋, 행 추가
-- [x] 🤖 `web/`: 입력 폼, 위치 권한 요청, 형식 검증, `text/plain` POST, 완료·실패 화면
-- [ ] 🙋 웹앱 배포 (실행: 나 / 액세스: 모든 사용자), URL을 `web/config.js`에 입력
-- [ ] 🙋 Vercel로 폼 호스팅 (Root Directory `web`, 환경변수 `WEBAPP_URL`), QR 만들기
-- [ ] 🙋 `clasp deploy -i <배포ID>`로 URL 유지되는지 확인
+- [x] 🤖 `web/`: 입력 폼, 위치 권한 요청, 형식 검증, 시작·종료 시각 선택(10분 단위, 최대 4시간), 제출 전 확인 팝업, `text/plain` POST, 완료·실패 화면
+- [ ] 🙋 웹앱 배포: 편집기 **배포 → 새 배포 → 웹 앱** (실행: 나 / 액세스: 모든 사용자)
+  - 웹 앱 URL(`.../exec`)과 배포 ID를 메모 (`.env`의 `WEBAPP_URL`, `DEPLOYMENT_ID`)
+  - 브라우저로 URL을 열어 `{"ok":true,"timeSlots":[...]}`가 보이는지 확인
+- [ ] 🙋 Vercel로 폼 호스팅: **Add New → Project**에서 이 레포 Import
+  - Root Directory `web`, Framework Preset `Other`, 환경변수 `WEBAPP_URL` = 웹 앱 URL
+  - 빌드 로그에 `config.js 생성 완료`가 보이면 정상 (URL이 없거나 형식이 틀리면 빌드 실패)
+  - 웹 앱 URL이 바뀌면 Vercel 환경변수를 고치고 재배포
+- [ ] 🙋 Vercel 주소로 QR 만들기
+- [ ] 🙋 코드 수정 후 URL 유지 확인: `npx @google/clasp -A .clasprc.json push --force` → `npx @google/clasp -A .clasprc.json deploy -i <배포ID>` (새 배포를 만들면 URL이 바뀜)
 
 **확인 (폰으로 현장 테스트)**: 쉼터 안 제출 성공 / 반경 밖 거부 / 위치 거부 시 버튼 비활성 / 같은 사람 재제출 거부.
+
+> 쉼터 밖에서 미리 테스트할 때는 스크립트 속성의 좌표를 현재 위치로 두거나 `GEOFENCE_RADIUS_M`을 크게 둡니다. 반경 밖 거부는 반경을 `10`처럼 작게 해서 확인합니다. **테스트 후 실제 좌표·반경으로 되돌리기.**
 
 ## 3. 텔레그램 봇 (`telegram`)
 
@@ -138,6 +146,7 @@
 **공통**
 
 
+- `clasp push` 뒤에는 열려 있던 Apps Script 편집기 탭을 **반드시 새로고침**합니다. 예전 내용이 열린 채로 저장·배포하면 push한 코드가 옛 코드로 덮어써집니다 (2단계 첫 배포 때 실제로 발생).
 - 코드를 고친 뒤에는 새 배포가 아니라 **기존 배포에 새 버전**으로 올립니다 (`clasp deploy -i <배포ID>`). 새 배포를 만들면 웹앱 URL이 바뀝니다.
 - 테스트 중에는 `MAIL_TO`를 본인 메일로 두세요.
 - Claude Code에 시킬 때: "`docs/TASKS.md`의 N단계를 구현하고, 끝나면 수동 테스트 방법을 알려줘"
