@@ -17,7 +17,9 @@
 - [ ] 🙋 테스트용 텔레그램 그룹 + 테스트 수신용 메일 준비
 - [ ] 🙋 쉼터 정확한 좌표와 허용 반경 정하기 (PRD 미정 사항)
 - [ ] 🙋 자연어 수정에 쓸 LLM 정하기: Gemini Flash 무료 티어 / Claude Haiku (PRD 미정 사항)
-- [ ] 🤖 `chore`: 레포 뼈대 (`web/`, `gas/`, `.clasp.json`, `appsscript.json`), `.gitignore`
+- [x] 🤖 `chore`: 레포 뼈대 (`web/`, `gas/`, `appsscript.json`, `.clasp.json.example`), `.gitignore`
+- [ ] 🙋 `.clasp.json.example`을 `.clasp.json`으로 복사하고 `scriptId` 입력
+- [ ] 🙋 `web/config.example.js`를 `web/config.js`로 복사 (웹앱 URL은 4단계 배포 후 입력)
 
 **확인**: `clasp push`가 성공하고 편집기에서 코드가 보인다.
 
@@ -121,6 +123,17 @@
 - [ ] 🙋 다른 쉼터가 README만 보고 설치 가능한지 한 번 따라 해 보기
 
 ## 진행 메모
+
+**현재 상태 (이어서 작업할 때 먼저 읽기)**
+
+- 0단계의 🤖 항목은 끝났습니다. `gas/`의 `.js` 파일은 역할만 적은 빈 파일이고, `web/`은 최소 골격입니다. 다음 🤖 작업은 1단계(`Config.js`, `Sheet.js`, `setupSheets()`)입니다.
+- **clasp 연결**: `.clasp.json.example`을 `.clasp.json`으로 복사하고 `scriptId`를 채웁니다. `rootDir`가 `gas`라서 `web/`은 Apps Script에 올라가지 않습니다. 이 파일은 `.gitignore` 대상입니다.
+- **폼 설정**: `web/config.example.js`를 `web/config.js`로 복사해 웹앱 URL을 넣습니다. 이 파일도 `.gitignore` 대상입니다.
+- **appsscript.json 선반영**: 웹앱 접근 설정(나로 실행 / 모든 사용자)은 4단계가 아닌 2단계 배포 설정을 미리 넣어 둔 것입니다. 시간대는 `Asia/Seoul`입니다.
+- **미해결 (2단계에서 결정)**: GitHub Pages로 폼을 호스팅하면 `config.js`가 `.gitignore` 대상이라 배포 시점에 그 파일이 없을 수 있습니다. 호스팅 방식(Vercel 환경변수·빌드 단계 / `config.js` 별도 배포 / 웹앱 URL을 공개 값으로 보고 커밋)을 2단계 시작 전에 정합니다.
+
+**공통**
+
 
 - 코드를 고친 뒤에는 새 배포가 아니라 **기존 배포에 새 버전**으로 올립니다 (`clasp deploy -i <배포ID>`). 새 배포를 만들면 웹앱 URL이 바뀝니다.
 - 테스트 중에는 `MAIL_TO`를 본인 메일로 두세요.
