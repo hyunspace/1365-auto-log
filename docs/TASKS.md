@@ -39,17 +39,32 @@
 - [x] 🤖 `Main.js`: `doGet`(활동시간 선택 방식·범위 반환) / `doPost` 라우팅 (`update_id` 유무로 웹훅·폼 구분)
 - [x] 🤖 `Form.js`: 하버사인 거리 검증, 중복 체크(봉사일자+이름+생년월일), 레이트 리밋, 행 추가
 - [x] 🤖 `web/`: 입력 폼, 위치 권한 요청, 형식 검증, 활동시간 선택(`TIME_MODE`: `free` 시작·종료 10분 단위 최대 8시간 / `preset` 오전·오후·종일), 제출 전 확인 팝업, `text/plain` POST, 완료·실패 화면
-- [ ] 🙋 웹앱 배포: 편집기 **배포 → 새 배포 → 웹 앱** (실행: 나 / 액세스: 모든 사용자)
+- [x] 🙋 웹앱 배포: 편집기 **배포 → 새 배포 → 웹 앱** (실행: 나 / 액세스: 모든 사용자)
   - 웹 앱 URL(`.../exec`)과 배포 ID를 메모 (`.env`의 `WEBAPP_URL`, `DEPLOYMENT_ID`)
-  - 브라우저로 URL을 열어 `{"ok":true,"timeSlots":[...]}`가 보이는지 확인
-- [ ] 🙋 Vercel로 폼 호스팅: **Add New → Project**에서 이 레포 Import
+  - 브라우저로 URL을 열어 `{"ok":true,"mode":...}`가 보이는지 확인
+- [x] 🙋 Vercel로 폼 호스팅: **Add New → Project**에서 이 레포 Import
   - Root Directory `web`, Framework Preset `Other`, 환경변수 `WEBAPP_URL` = 웹 앱 URL
   - 빌드 로그에 `config.js 생성 완료`가 보이면 정상 (URL이 없거나 형식이 틀리면 빌드 실패)
   - 웹 앱 URL이 바뀌면 Vercel 환경변수를 고치고 재배포
 - [ ] 🙋 Vercel 주소로 QR 만들기
-- [ ] 🙋 코드 수정 후 URL 유지 확인: `npx @google/clasp -A .clasprc.json push --force` → `npx @google/clasp -A .clasprc.json deploy -i <배포ID>` (새 배포를 만들면 URL이 바뀜)
+- [x] 🙋 코드 수정 후 URL 유지 확인: `npx @google/clasp -A .clasprc.json push --force` → `npx @google/clasp -A .clasprc.json deploy -i <배포ID>` (새 배포를 만들면 URL이 바뀜)
 
 **확인 (폰으로 현장 테스트)**: 쉼터 안 제출 성공 / 반경 밖 거부 / 위치 거부 시 버튼 비활성 / 같은 사람 재제출 거부.
+
+- [x] 쉼터 밖(현재 위치 좌표·넓은 반경)에서 제출 성공, 반경 밖 거부 확인
+- [ ] 쉼터 현장에서 실제 좌표·반경으로 최종 확인 (**`GEOFENCE_RADIUS_M`이 테스트용 100000으로 되어 있음, 되돌릴 것**)
+- [ ] 🙋 개인정보 동의 문구를 활동일지 양식의 실제 문구로 교체 (`web/index.html`, 지금은 임시 문구)
+
+**전자서명 추가 (2단계 추가 요구사항)**
+
+- [x] 🤖 폼에 서명판(canvas) + [지우기], 서명 필수, 확인 팝업에 서명 표시
+- [x] 🤖 서버: PNG 검증 후 드라이브 서명 폴더에 저장, 신청 탭 `서명파일ID` 컬럼 추가 (`setupSheets()` 재실행 시 기존 시트 끝에 컬럼만 추가)
+- [x] 🙋 드라이브에 서명 폴더 만들기 (링크 공유 금지) → 폴더 URL의 `/folders/<ID>`를 `SIGNATURE_FOLDER_ID`에 입력
+  - 드라이브 구조: 공용 계정의 `1365-auto-log` 폴더 안에 데이터 시트, `PDF` 폴더(5단계 `DRIVE_FOLDER_ID`), `서명` 폴더
+- [x] 🙋 편집기에서 `setupSheets()` 실행 → 드라이브 권한 승인 + `서명파일ID` 컬럼 추가 확인
+- [x] 🙋 `checkConfig()` 실행 → 로그에 서명 폴더 이름이 나오는지 확인
+- [x] 🤖 웹앱 새 버전 배포 (권한 승인 후)
+- [ ] 🙋 폰으로 서명 제출 → 서명 폴더에 PNG 생성, 신청 탭에 파일 ID 기록 확인
 
 > 쉼터 밖에서 미리 테스트할 때는 스크립트 속성의 좌표를 현재 위치로 두거나 `GEOFENCE_RADIUS_M`을 크게 둡니다. 반경 밖 거부는 반경을 `10`처럼 작게 해서 확인합니다. **테스트 후 실제 좌표·반경으로 되돌리기.**
 
@@ -81,10 +96,10 @@
 - [ ] 🙋 함수 실행 후 센터 양식에 맞게 다듬기 → `TEMPLATE_SHEET_ID` 입력
 - [ ] 🙋 드라이브 PDF 폴더 만들고 직인 이미지 업로드 → `DRIVE_FOLDER_ID`, `SEAL_IMAGE_FILE_ID` 입력
 - [ ] 🙋 `ORG_NAME`, `ACTIVITY_DESC`, `MANAGER_NAME`, `MANAGER_PHONE` 입력
-- [ ] 🤖 `Pdf.js`: 템플릿 복제 → 값 채우기 → 11명 단위 페이지 분할 → PDF 내보내기 → 드라이브 저장 → 텔레그램 전송 (`작성완료`)
+- [ ] 🤖 `Pdf.js`: 템플릿 복제 → 값 채우기(서명 칸에는 `서명파일ID`의 이미지) → 11명 단위 페이지 분할 → PDF 내보내기 → 드라이브 저장 → 텔레그램 전송 (`작성완료`)
 - [ ] 🤖 PDF 실패 시 오류 알림 + [다시 작성]
 
-**확인**: 3명 / 11명 / 12명(2장)으로 각각 만들어 보고 정렬, 동의 "○", 직인, 하단 날짜를 눈으로 확인.
+**확인**: 3명 / 11명 / 12명(2장)으로 각각 만들어 보고 정렬, 서명 이미지, 직인, 하단 날짜를 눈으로 확인.
 
 ## 6. 메일 발송 (`mail`)
 
@@ -112,7 +127,7 @@
 
 - [ ] 🤖 `weeklyReminder`: 화요일 18~19시, 발송 전이면 현재 단계 버튼과 함께 재알림
 - [ ] 🤖 `purgeNotice`: 내일이 1일이면 파기 예정 알림
-- [ ] 🤖 `monthlyPurge`: 발송 후 `RETENTION_MONTHS` 지난 주차의 신청 행·PDF 삭제, 상태 `파기완료`
+- [ ] 🤖 `monthlyPurge`: 발송 후 `RETENTION_MONTHS` 지난 주차의 신청 행·PDF·서명 이미지 삭제, 상태 `파기완료`
 - [ ] 🤖 `setupTriggers()`
 - [ ] 🙋 `setupTriggers()` 수동 실행, 트리거 목록 확인
 
@@ -136,10 +151,9 @@
 
 **현재 상태 (이어서 작업할 때 먼저 읽기)**
 
-- 2단계 🤖 항목(`Main.js`, `Form.js`, `web/`)까지 끝났습니다. 남은 2단계 작업은 웹앱 배포, Vercel 호스팅, 현장 테스트(🙋)입니다. 텔레그램 웹훅(`update_id`)은 지금은 받기만 하고 무시하며 3단계에서 연결합니다.
+- 2단계까지 끝났습니다 (웹앱 배포, Vercel 호스팅 완료). 남은 2단계 작업은 전자서명 반영(폴더·권한·배포), QR, 현장 최종 확인, 동의 문구 교체입니다. 활동시간은 `TIME_MODE=preset`으로 운영 중입니다. 텔레그램 웹훅(`update_id`)은 지금은 받기만 하고 무시하며 3단계에서 연결합니다.
 - **clasp 연결**: `.clasp.json.example`을 `.clasp.json`으로 복사하고 `scriptId`를 채웁니다. `rootDir`가 `gas`라서 `web/`은 Apps Script에 올라가지 않습니다. 이 파일은 `.gitignore` 대상입니다.
 - **clasp 로그인**: 레포 안의 `.clasprc.json`에 공용 계정 토큰을 저장합니다 (`npx @google/clasp -A .clasprc.json login`). 이후 명령도 `-A .clasprc.json`을 붙이고, 매니페스트 확인 프롬프트 때문에 push는 `push --force`로 합니다. 이 파일도 `.gitignore` 대상입니다.
-- **폼 설정**: `web/config.example.js`를 `web/config.js`로 복사해 웹앱 URL을 넣습니다. 이 파일도 `.gitignore` 대상입니다.
 - **appsscript.json 선반영**: 웹앱 접근 설정(나로 실행 / 모든 사용자)은 4단계가 아닌 2단계 배포 설정을 미리 넣어 둔 것입니다. 시간대는 `Asia/Seoul`입니다.
 - **폼 호스팅 (결정: Vercel)**: Vercel 프로젝트의 Root Directory를 `web`으로 두고 환경변수 `WEBAPP_URL`을 넣으면, 빌드 단계(`web/vercel.json` → `web/build-config.js`)가 `config.js`를 만듭니다. 레포에는 웹앱 URL이 남지 않습니다. 로컬 테스트는 `web/config.example.js`를 `web/config.js`로 복사해서 씁니다.
 

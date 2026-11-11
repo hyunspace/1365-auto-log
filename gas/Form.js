@@ -21,6 +21,10 @@ const NAME_PATTERN = /^[가-힣a-zA-Z][가-힣a-zA-Z .-]{0,19}$/;
 const BIRTH_PATTERN = /^(\d{2})\.(\d{2})\.(\d{2})$/;
 const PHONE_PATTERN = /^(01[016789])(\d{3,4})(\d{4})$/;
 
+// 서명은 PNG data URL로 받는다. 폼에서 줄여 보내므로 보통 수십 KB 이하
+const SIGNATURE_PREFIX = 'data:image/png;base64,';
+const SIGNATURE_MAX_BYTES = 300 * 1024;
+
 function handleFormSubmit_(data) {
   let input;
   try {
@@ -55,17 +59,24 @@ function handleFormSubmit_(data) {
       if (duplicated) {
         return { ok: false, code: 'DUPLICATE', message: '오늘 이미 제출하셨어요.' };
       }
-      appendRecord_(SHEET_NAMES.APPLY, {
-        봉사일자: volunteerDate,
-        이름: input.name,
-        생년월일: input.birth,
-        연락처: input.phone,
-        활동시간: input.activityTime,
-        정보제공동의: 'Y',
-        진행상태: '접수',
-        작성일시: formatKst_(now, 'yyyy-MM-dd HH:mm:ss'),
-        '거리(m)': distance,
-      });
+      const signatureFile = saveSignature_(input.signature, volunteerDate);
+      try {
+        appendRecord_(SHEET_NAMES.APPLY, {
+          봉사일자: volunteerDate,
+          이름: input.name,
+          생년월일: input.birth,
+          연락처: input.phone,
+          활동시간: input.activityTime,
+          정보제공동의: 'Y',
+          진행상태: '접수',
+          작성일시: formatKst_(now, 'yyyy-MM-dd HH:mm:ss'),
+          '거리(m)': distance,
+          서명파일ID: signatureFile.getId(),
+        });
+      } catch (err) {
+        signatureFile.setTrashed(true); // 행 추가에 실패하면 서명 파일도 남기지 않는다
+        throw err;
+      }
     } finally {
       lock.releaseLock();
     }
@@ -106,7 +117,39 @@ function validateSubmission_(data) {
     throw new Error('위치를 확인할 수 없어요. 위치 권한을 허용해 주세요.');
   }
 
-  return { name, birth, phone, activityTime, lat, lng };
+  const signature = decodeSignature_(data.signature);
+
+  return { name, birth, phone, activityTime, lat, lng, signature };
+}
+
+// 서명 data URL을 PNG blob으로 바꾼다. 형식이 틀리거나 너무 크면 오류를 낸다.
+function decodeSignature_(dataUrl) {
+  const value = String(dataUrl || '');
+  if (!value.startsWith(SIGNATURE_PREFIX)) throw new Error('서명해 주세요.');
+  let bytes;
+  try {
+    bytes = Utilities.base64Decode(value.slice(SIGNATURE_PREFIX.length));
+  } catch (err) {
+    throw new Error('서명을 읽을 수 없어요. 다시 서명해 주세요.');
+  }
+  const isPng = bytes.length > 8 && bytes[0] === -119 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71; // \x89PNG
+  if (!isPng) throw new Error('서명을 읽을 수 없어요. 다시 서명해 주세요.');
+  if (bytes.length > SIGNATURE_MAX_BYTES) throw new Error('서명 이미지가 너무 커요. 지우고 다시 서명해 주세요.');
+  return Utilities.newBlob(bytes, 'image/png');
+}
+
+// 서명 폴더에 저장한다. 파일명에는 이름 등 개인정보를 넣지 않는다.
+function saveSignature_(blob, volunteerDate) {
+  return getSignatureFolder_().createFile(blob.setName(`${volunteerDate}_${Utilities.getUuid()}.png`));
+}
+
+function getSignatureFolder_() {
+  const id = requireConfig_(['SIGNATURE_FOLDER_ID']).SIGNATURE_FOLDER_ID;
+  try {
+    return DriveApp.getFolderById(id);
+  } catch (e) {
+    throw new Error(`SIGNATURE_FOLDER_ID로 드라이브 폴더를 열 수 없어요. ID와 권한을 확인해 주세요. (${e.message})`);
+  }
 }
 
 // TIME_MODE에 따른 활동시간 선택 규칙. doGet으로 폼에 내려주고, 제출 검증에도 쓴다.

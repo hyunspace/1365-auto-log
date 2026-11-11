@@ -55,6 +55,15 @@
           </label>
         </div>
 
+        <div class="signature">
+          <div class="signature-head">
+            <span class="field-title">서명</span>
+            <button type="button" id="signature-clear" class="link">지우기</button>
+          </div>
+          <canvas id="signature-pad" aria-label="서명란"></canvas>
+          <p class="hint">위 칸에 손가락으로 서명해 주세요.</p>
+        </div>
+
         <p id="form-error" class="error" role="alert" hidden></p>
         <button type="submit" id="submit" disabled>제출하기</button>
       </form>
@@ -63,6 +72,7 @@
     <dialog id="confirm-dialog" aria-labelledby="confirm-title">
       <h2 id="confirm-title">제출 내용 확인</h2>
       <dl id="confirm-summary"></dl>
+      <img id="confirm-signature" alt="서명">
       <p>위 내용으로 제출하시겠습니까?<br><strong>제출 후에는 수정할 수 없습니다.</strong></p>
       <div class="dialog-buttons">
         <button type="button" id="confirm-cancel" class="secondary">취소</button>

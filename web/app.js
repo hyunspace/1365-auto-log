@@ -177,6 +177,84 @@
   startSelect.addEventListener('change', updateEndOptions);
   endSelect.addEventListener('change', updateTimeTotal);
 
+  // ---------- 서명 ----------
+
+  const pad = $('signature-pad');
+  const SIGNATURE_EXPORT_WIDTH = 600; // 서버로 보낼 때 이 너비로 줄인다
+  const MIN_SIGNATURE_POINTS = 10; // 점 몇 개만 찍은 것은 서명으로 보지 않는다
+  const signature = { points: 0, drawing: false, last: null };
+
+  // 캔버스 내부 해상도를 화면 크기 × 기기 배율로 맞춘다. (내용이 지워지므로 비어 있을 때만)
+  function resizePad() {
+    const rect = pad.getBoundingClientRect();
+    if (!rect.width) return;
+    const ratio = window.devicePixelRatio || 1;
+    pad.width = Math.round(rect.width * ratio);
+    pad.height = Math.round(rect.height * ratio);
+    signature.points = 0;
+  }
+
+  // 화면 좌표를 캔버스 내부 좌표로 바꾼다. (회전 등으로 크기가 바뀌어도 맞게 매번 계산)
+  function padPoint(e) {
+    const rect = pad.getBoundingClientRect();
+    const scale = pad.width / rect.width;
+    return { x: (e.clientX - rect.left) * scale, y: (e.clientY - rect.top) * scale, scale };
+  }
+
+  function drawLine(from, to) {
+    const ctx = pad.getContext('2d');
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 2.5 * to.scale;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+  }
+
+  pad.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    pad.setPointerCapture(e.pointerId);
+    signature.drawing = true;
+    signature.last = padPoint(e);
+    drawLine(signature.last, signature.last);
+  });
+
+  pad.addEventListener('pointermove', (e) => {
+    if (!signature.drawing) return;
+    const point = padPoint(e);
+    drawLine(signature.last, point);
+    signature.last = point;
+    signature.points += 1;
+  });
+
+  ['pointerup', 'pointercancel'].forEach((type) =>
+    pad.addEventListener(type, () => {
+      signature.drawing = false;
+    })
+  );
+
+  $('signature-clear').addEventListener('click', () => {
+    pad.getContext('2d').clearRect(0, 0, pad.width, pad.height);
+    signature.points = 0;
+  });
+
+  window.addEventListener('resize', () => {
+    if (!signature.points) resizePad();
+  });
+
+  // 서명이 있으면 줄인 PNG data URL, 없으면 빈 문자열
+  function exportSignature() {
+    if (signature.points < MIN_SIGNATURE_POINTS) return '';
+    const width = Math.min(SIGNATURE_EXPORT_WIDTH, pad.width);
+    const out = document.createElement('canvas');
+    out.width = width;
+    out.height = Math.round((pad.height * width) / pad.width);
+    out.getContext('2d').drawImage(pad, 0, 0, out.width, out.height);
+    return out.toDataURL('image/png');
+  }
+
   // ---------- 입력 형식 (입력하는 동안 . 과 - 를 자동으로 넣는다) ----------
 
   function formatBirth(value) {
@@ -207,6 +285,7 @@
       return '활동 시작·종료 시각을 선택해 주세요.';
     }
     if (!values.consent) return '개인정보 제공에 동의해야 제출할 수 있어요.';
+    if (!values.signature) return '서명해 주세요.';
     return '';
   }
 
@@ -233,7 +312,7 @@
     const rows = summaryRows(values);
     if (typeof dialog.showModal !== 'function') {
       const text = rows.map(([k, v]) => `${k}: ${v}`).join('\n');
-      return Promise.resolve(window.confirm(`${text}\n\n위 내용으로 제출하시겠습니까?\n제출 후에는 수정할 수 없습니다.`));
+      return Promise.resolve(window.confirm(`${text}\n서명: 완료\n\n위 내용으로 제출하시겠습니까?\n제출 후에는 수정할 수 없습니다.`));
     }
 
     const summary = $('confirm-summary');
@@ -245,6 +324,7 @@
       dd.textContent = v;
       summary.append(dt, dd);
     });
+    $('confirm-signature').src = values.signature;
 
     return new Promise((resolve) => {
       const finish = (ok) => {
@@ -272,6 +352,7 @@
       birth: $('birth').value.trim(),
       phone: $('phone').value.trim(),
       consent: $('consent').checked,
+      signature: exportSignature(),
     };
     // 모드에 맞는 활동시간만 보낸다. (preset이면 시각은 서버가 스크립트 속성에서 정한다)
     if (state.timeRule.mode === 'preset') {
@@ -328,6 +409,7 @@
     locationStatus.className = 'status error';
     return;
   }
+  resizePad();
   loadTimeRule();
   checkLocation();
 })();

@@ -31,7 +31,7 @@ const CONFIG_VALIDATORS = {
 };
 
 // checkConfig()로 확인하는 키. 단계가 진행되면 늘린다. (활동시간 키는 TIME_MODE에 따라 따로 확인)
-const BASIC_CONFIG_KEYS = ['SHEET_ID', 'SHELTER_LAT', 'SHELTER_LNG', 'GEOFENCE_RADIUS_M'];
+const BASIC_CONFIG_KEYS = ['SHEET_ID', 'SHELTER_LAT', 'SHELTER_LNG', 'GEOFENCE_RADIUS_M', 'SIGNATURE_FOLDER_ID'];
 
 let configCache_ = null;
 
@@ -76,11 +76,12 @@ function checkConfig() {
   requireConfig_(BASIC_CONFIG_KEYS);
   const rule = getActivityRule_();
   const ss = getSpreadsheet_();
+  const signatureFolder = getSignatureFolder_();
   const timeText =
     rule.mode === 'free'
       ? `자유 선택 ${rule.window.start}~${rule.window.end}, 최대 ${rule.maxMinutes / 60}시간`
       : rule.presets.map((p) => `${p.label} ${p.start}~${p.end}`).join(', ');
-  Logger.log(`설정 확인 완료: 시트 "${ss.getName()}", 활동시간 ${timeText}`);
+  Logger.log(`설정 확인 완료: 시트 "${ss.getName()}", 서명 폴더 "${signatureFolder.getName()}", 활동시간 ${timeText}`);
 }
 
 function isNumberInRange_(value, min, max) {

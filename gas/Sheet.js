@@ -13,7 +13,7 @@ const SHEET_NAMES = {
 // (생년월일·연락처·날짜 문자열이 시트에서 날짜나 숫자로 자동 변환되는 것을 막는다)
 const SHEET_SCHEMAS = {
   [SHEET_NAMES.APPLY]: {
-    headers: ['봉사일자', '이름', '생년월일', '연락처', '활동시간', '정보제공동의', '진행상태', '작성일시', '거리(m)', '주차ID'],
+    headers: ['봉사일자', '이름', '생년월일', '연락처', '활동시간', '정보제공동의', '진행상태', '작성일시', '거리(m)', '주차ID', '서명파일ID'],
     numeric: ['거리(m)'],
   },
   [SHEET_NAMES.WEEK]: {
@@ -38,7 +38,7 @@ let spreadsheetCache_ = null;
 
 /**
  * 편집기에서 수동 실행: 탭 4개와 머리글, 컬럼 서식을 만든다.
- * 여러 번 실행해도 기존 데이터는 건드리지 않는다.
+ * 여러 번 실행해도 기존 데이터는 건드리지 않는다. 뒤에 새로 생긴 컬럼은 끝에 덧붙인다.
  */
 function setupSheets() {
   const ss = getSpreadsheet_();
@@ -115,7 +115,13 @@ function applySchema_(sheet, schema) {
   const lastColumn = sheet.getLastColumn();
   if (lastColumn > 0) {
     const current = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0];
-    if (current.join('|') !== headers.join('|')) {
+    const isPrefix = current.length < headers.length && current.every((h, i) => h === headers[i]);
+    if (isPrefix) {
+      // 기존 머리글 뒤에 새 컬럼만 추가 (예: 서명파일ID)
+      const added = headers.slice(current.length);
+      sheet.getRange(1, current.length + 1, 1, added.length).setValues([added]).setFontWeight('bold');
+      Logger.log(`'${sheet.getName()}' 탭에 컬럼 추가: ${added.join(', ')}`);
+    } else if (current.join('|') !== headers.join('|')) {
       throw new Error(
         `'${sheet.getName()}' 탭의 1행 머리글이 예상과 달라요.\n` +
           `예상: ${headers.join(', ')}\n현재: ${current.join(', ')}\n` +
