@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 .clasp.json
+.clasprc.json
 web/config.js
 
 # 기타

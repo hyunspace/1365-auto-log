@@ -10,15 +10,15 @@
 ## 0. 사전 준비
 
 - [ ] 🙋 쉼터 공용 Gmail 계정 준비 (이후 모든 작업은 이 계정으로)
-- [ ] 🙋 구글 시트 새로 만들고 Apps Script 프로젝트 생성
-- [ ] 🙋 [Apps Script API](https://script.google.com/home/usersettings) 켜기
-- [ ] 🙋 `npm i -g @google/clasp` → `clasp login` (공용 계정)
-- [ ] 🙋 프로젝트 설정에서 시간대 `Asia/Seoul` 확인
+- [x] 🙋 구글 시트 새로 만들고 Apps Script 프로젝트 생성
+- [x] 🙋 [Apps Script API](https://script.google.com/home/usersettings) 켜기
+- [x] 🙋 `npm i -g @google/clasp` → `clasp login` (공용 계정)
+- [x] 🙋 프로젝트 설정에서 시간대 `Asia/Seoul` 확인
 - [ ] 🙋 테스트용 텔레그램 그룹 + 테스트 수신용 메일 준비
 - [ ] 🙋 쉼터 정확한 좌표와 허용 반경 정하기 (PRD 미정 사항)
 - [x] 🙋 자연어 수정에 쓸 LLM 정하기: **Gemini Flash 무료 티어로 결정** (무료 티어는 입력이 서비스 개선에 쓰일 수 있어 마스킹 필수, 7단계 참고)
 - [x] 🤖 `chore`: 레포 뼈대 (`web/`, `gas/`, `appsscript.json`, `.clasp.json.example`), `.gitignore`
-- [ ] 🙋 `.clasp.json.example`을 `.clasp.json`으로 복사하고 `scriptId` 입력
+- [x] 🙋 `.clasp.json.example`을 `.clasp.json`으로 복사하고 `scriptId` 입력
 - [ ] 🙋 `web/config.example.js`를 `web/config.js`로 복사 (웹앱 URL은 4단계 배포 후 입력)
 
 **확인**: `clasp push`가 성공하고 편집기에서 코드가 보인다.
