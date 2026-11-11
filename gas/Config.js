@@ -28,7 +28,17 @@ const CONFIG_VALIDATORS = {
   TIME_FULLDAY: timeRangeValidator_,
   MAX_ACTIVITY_HOURS: (v) => (isNumberInRange_(v, 1, 24) && (Number(v) * 60) % 10 === 0 ? '' : '1~24 사이 숫자여야 해요 (10분 단위)'),
   RETENTION_MONTHS: (v) => (/^[1-9]\d*$/.test(v) ? '' : '1 이상의 정수여야 해요'),
+  TELEGRAM_BOT_TOKEN: (v) => (/^\d+:[\w-]+$/.test(v) ? '' : 'BotFather가 준 토큰 형식(숫자:문자열)이어야 해요'),
+  TELEGRAM_CHAT_ID: (v) => (/^-?\d+$/.test(v) ? '' : '숫자여야 해요 (그룹은 보통 -100으로 시작)'),
+  ADMIN_USER_IDS: (v) => (splitList_(v).every((id) => /^\d+$/.test(id)) ? '' : '쉼표로 구분한 숫자 ID여야 해요'),
+  WEBHOOK_SECRET: (v) => (/^[A-Za-z0-9_-]{16,256}$/.test(v) ? '' : '영문·숫자·_·- 16자 이상이어야 해요 (openssl rand -hex 24)'),
+  WEBAPP_URL: (v) => (/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(v) ? '' : '웹앱 URL(https://script.google.com/macros/s/.../exec)이어야 해요'),
 };
+
+// 오류 문구에 현재 값을 보여주지 않는 키 (처리로그·실행 로그에 남지 않게)
+const SECRET_CONFIG_KEYS = ['TELEGRAM_BOT_TOKEN', 'WEBHOOK_SECRET', 'LLM_API_KEY'];
+
+const TELEGRAM_CONFIG_KEYS = ['TELEGRAM_BOT_TOKEN', 'TELEGRAM_CHAT_ID', 'ADMIN_USER_IDS', 'WEBHOOK_SECRET'];
 
 // checkConfig()로 확인하는 키. 단계가 진행되면 늘린다. (활동시간 키는 TIME_MODE에 따라 따로 확인)
 const BASIC_CONFIG_KEYS = ['SHEET_ID', 'SHELTER_LAT', 'SHELTER_LNG', 'GEOFENCE_RADIUS_M', 'SIGNATURE_FOLDER_ID'];
@@ -58,7 +68,7 @@ function requireConfig_(keys) {
     }
     const validate = CONFIG_VALIDATORS[key];
     const error = validate ? validate(value) : '';
-    if (error) problems.push(`${key}: ${error} (현재 값: ${value})`);
+    if (error) problems.push(SECRET_CONFIG_KEYS.includes(key) ? `${key}: ${error}` : `${key}: ${error} (현재 값: ${value})`);
     values[key] = value;
   });
   if (problems.length) {

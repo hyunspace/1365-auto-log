@@ -17,8 +17,7 @@ function doPost(e) {
     return jsonResponse_({ ok: false, code: 'INVALID', message: '요청 형식이 올바르지 않아요.' });
   }
 
-  // 텔레그램 웹훅은 3단계에서 Telegram.js로 연결한다.
-  if (body && body.update_id !== undefined) return jsonResponse_({ ok: true });
+  if (body && body.update_id !== undefined) return handleTelegramWebhook_(e, body);
 
   return jsonResponse_(handleFormSubmit_(body || {}));
 }

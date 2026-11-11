@@ -63,6 +63,7 @@ docs/   PRD
 | `TELEGRAM_CHAT_ID` | `-100123…` | 운영진 그룹 ID |
 | `ADMIN_USER_IDS` | `11111,22222` | 버튼·명령을 허용할 사용자 ID |
 | `WEBHOOK_SECRET` | 임의의 긴 문자열 | 웹훅 검증용 (비밀) |
+| `WEBAPP_URL` | `https://script.google.com/macros/s/…/exec` | `setWebhook()`이 등록할 웹앱 주소 |
 | `LLM_API_KEY` | | 자연어 수정용 API 키 (비밀) |
 | `LLM_MODEL` | | 사용할 모델명 |
 | `SHELTER_LAT` / `SHELTER_LNG` | `37.5…` / `126.7…` | 쉼터 좌표 |
@@ -113,8 +114,10 @@ docs/   PRD
 ## 텔레그램 설정
 
 1. BotFather에서 봇을 만들고 토큰을 받습니다.
-2. 운영진 그룹에 봇을 초대하고, 그룹 chat ID와 운영진 user ID를 확인합니다.
-3. **자연어 수정을 쓰려면 privacy mode를 꺼야 합니다.** BotFather에서 `/setprivacy` → `Disable`로 설정하세요. 기본 상태에서는 봇이 그룹의 일반 메시지를 읽지 못합니다. (버튼만 쓴다면 필요 없습니다.)
+2. **자연어 수정을 쓰려면 privacy mode를 꺼야 합니다.** BotFather에서 `/setprivacy` → `Disable`로 설정하세요. 기본 상태에서는 봇이 그룹의 일반 메시지를 읽지 못합니다. (버튼만 쓴다면 필요 없습니다.) 그룹에 초대하기 **전에** 바꾸세요. 초대 후에 바꾸면 봇을 내보냈다가 다시 초대해야 적용됩니다.
+3. 운영진 그룹에 봇을 초대하고, 그룹에 메시지를 하나 보낸 뒤 `https://api.telegram.org/bot<토큰>/getUpdates`에서 그룹 chat ID(`chat.id`)와 본인 user ID(`from.id`)를 확인합니다. (웹훅 등록 전에만 동작)
+4. 스크립트 속성에 `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `ADMIN_USER_IDS`, `WEBHOOK_SECRET`, `WEBAPP_URL`을 넣고 편집기에서 `setWebhook()`을 실행합니다. `checkWebhook()`으로 등록 상태를, `sendTestMessage()`로 버튼 동작을 확인합니다.
+5. 운영진을 추가할 때는 그 사람이 그룹에서 `/myid`를 보내면 봇이 user ID를 알려줍니다. `ADMIN_USER_IDS`에 쉼표로 이어 붙이세요.
 
 ## LLM 설정
 

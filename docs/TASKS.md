@@ -70,14 +70,16 @@
 
 ## 3. 텔레그램 봇 (`telegram`)
 
-- [ ] 🙋 BotFather로 봇 생성, 토큰 받기
-- [ ] 🙋 운영진 그룹에 봇 초대, 그룹 chat ID·운영진 user ID 확인
-- [ ] 🙋 BotFather `/setprivacy` → Disable (자연어 수정용)
-- [ ] 🙋 Script Properties 입력: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `ADMIN_USER_IDS`, `WEBHOOK_SECRET`
-- [ ] 🤖 `Telegram.js`: 메시지 전송, 인라인 버튼, 콜백 처리, 처리자 표시
-- [ ] 🤖 권한 체크(`ADMIN_USER_IDS`), `update_id` 중복 방지, `LockService` 주차 잠금
-- [ ] 🤖 `setWebhook()` (비밀값을 URL 쿼리에 포함)
-- [ ] 🙋 `setWebhook()` 수동 실행
+- [x] 🙋 BotFather로 봇 생성, 토큰 받기
+- [x] 🙋 BotFather `/setprivacy` → Disable (자연어 수정용, **그룹 초대 전에**)
+- [x] 🙋 테스트 그룹에 봇 초대, `getUpdates`로 그룹 chat ID·본인 user ID 확인 (운영진은 나중에 `/myid`로 추가)
+- [x] 🙋 Script Properties 입력: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `ADMIN_USER_IDS`, `WEBHOOK_SECRET`
+- [ ] 🙋 Script Properties 추가: `WEBAPP_URL` (웹앱 `.../exec` 주소, Vercel 환경변수와 같은 값)
+- [x] 🤖 `Telegram.js`: 메시지 전송, 인라인 버튼, 콜백 처리, 처리자 표시, `/myid`
+- [x] 🤖 권한 체크(`ADMIN_USER_IDS`), `update_id` 중복 방지(캐시), `LockService` 잠금, 웹훅 200 응답(HtmlService)
+- [x] 🤖 `setWebhook()` (비밀값을 URL 쿼리에 포함), `checkWebhook()`, `sendTestMessage()`
+- [ ] 🤖 웹앱 새 버전 배포
+- [ ] 🙋 편집기에서 `setWebhook()` 실행 (외부 요청 권한 승인) → `checkWebhook()` → `sendTestMessage()`
 
 **확인**: 그룹에서 테스트 버튼을 누르면 메시지가 수정되고, 허용되지 않은 사용자는 "권한이 없어요", 같은 버튼 재클릭은 "이미 처리된 요청이에요".
 
