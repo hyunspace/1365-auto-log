@@ -1,0 +1,10 @@
+# 쉼터별 값 (절대 커밋 금지)
+.env
+.env.*
+!.env.example
+.clasp.json
+web/config.js
+
+# 기타
+node_modules/
+.DS_Store
