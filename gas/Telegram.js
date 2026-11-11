@@ -178,16 +178,15 @@ function answerCallback_(callbackQueryId, text) {
 }
 
 // 텔레그램 Bot API 호출. 오류 문구에 토큰이 든 URL이 섞이지 않게 정리해서 던진다.
-function telegramApi_(method, payload) {
+// multipart: 파일(blob)을 보낼 때 true (sendDocument 등)
+function telegramApi_(method, payload, multipart) {
   const token = requireConfig_(['TELEGRAM_BOT_TOKEN']).TELEGRAM_BOT_TOKEN;
+  const options = multipart
+    ? { method: 'post', payload, muteHttpExceptions: true }
+    : { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true };
   let response;
   try {
-    response = UrlFetchApp.fetch(`https://api.telegram.org/bot${token}/${method}`, {
-      method: 'post',
-      contentType: 'application/json',
-      payload: JSON.stringify(payload),
-      muteHttpExceptions: true,
-    });
+    response = UrlFetchApp.fetch(`https://api.telegram.org/bot${token}/${method}`, options);
   } catch (err) {
     throw new Error(`텔레그램 ${method} 요청 실패: ${String(err.message).split(token).join('<TOKEN>')}`);
   }
