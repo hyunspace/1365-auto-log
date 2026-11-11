@@ -74,14 +74,19 @@
 - [x] 🙋 BotFather `/setprivacy` → Disable (자연어 수정용, **그룹 초대 전에**)
 - [x] 🙋 테스트 그룹에 봇 초대, `getUpdates`로 그룹 chat ID·본인 user ID 확인 (운영진은 나중에 `/myid`로 추가)
 - [x] 🙋 Script Properties 입력: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `ADMIN_USER_IDS`, `WEBHOOK_SECRET`
-- [ ] 🙋 Script Properties 추가: `WEBAPP_URL` (웹앱 `.../exec` 주소, Vercel 환경변수와 같은 값)
+- [x] 🙋 Script Properties 추가: `WEBAPP_URL` (웹앱 `.../exec` 주소, Vercel 환경변수와 같은 값)
 - [x] 🤖 `Telegram.js`: 메시지 전송, 인라인 버튼, 콜백 처리, 처리자 표시, `/myid`
 - [x] 🤖 권한 체크(`ADMIN_USER_IDS`), `update_id` 중복 방지(캐시), `LockService` 잠금, 웹훅 200 응답(HtmlService)
 - [x] 🤖 `setWebhook()` (비밀값을 URL 쿼리에 포함), `checkWebhook()`, `sendTestMessage()`
-- [ ] 🤖 웹앱 새 버전 배포
-- [ ] 🙋 편집기에서 `setWebhook()` 실행 (외부 요청 권한 승인) → `checkWebhook()` → `sendTestMessage()`
+- [x] 🤖 웹앱 새 버전 배포 (@7)
+- [x] 🙋 편집기에서 `setWebhook()` 실행 (외부 요청 권한 승인) → `checkWebhook()` → `sendTestMessage()`
 
 **확인**: 그룹에서 테스트 버튼을 누르면 메시지가 수정되고, 허용되지 않은 사용자는 "권한이 없어요", 같은 버튼 재클릭은 "이미 처리된 요청이에요".
+
+- [x] 테스트 그룹에서 `/myid` 응답, 테스트 버튼 처리(처리자 표시·버튼 제거·처리로그 기록) 확인
+- [ ] 다른 계정으로 "권한이 없어요" 확인 (운영진 합류 시)
+
+> 스크립트 속성을 고친 뒤에는 **저장 버튼**을 눌러야 반영됩니다. 값에 공백·줄바꿈이 섞이면 설정 검사에서 막힙니다.
 
 ## 4. 주간 마감 알림 (`trigger`, `telegram`)
 
@@ -153,7 +158,7 @@
 
 **현재 상태 (이어서 작업할 때 먼저 읽기)**
 
-- 2단계까지 끝났습니다 (웹앱 배포, Vercel 호스팅 완료). 전자서명까지 반영·확인했습니다 (웹앱 @6). 남은 2단계 작업은 QR, 현장 최종 확인(반경 되돌리기), 동의 문구 교체입니다. 다음 작업은 3단계 텔레그램입니다. 활동시간은 `TIME_MODE=preset`으로 운영 중입니다. 텔레그램 웹훅(`update_id`)은 지금은 받기만 하고 무시하며 3단계에서 연결합니다.
+- 2단계까지 끝났습니다 (웹앱 배포, Vercel 호스팅 완료). 3단계 텔레그램까지 끝났습니다 (웹앱 @7, 테스트 그룹 연결). 남은 2단계 작업은 QR, 현장 최종 확인(반경 되돌리기), 동의 문구 교체입니다. 다음 작업은 4단계 `weeklyClose`(주간 마감 알림)입니다. 자연어 수정 메시지는 지금 운영진 메시지를 받기만 하고 7단계에서 연결합니다. 활동시간은 `TIME_MODE=preset`으로 운영 중입니다. 텔레그램 웹훅(`update_id`)은 지금은 받기만 하고 무시하며 3단계에서 연결합니다.
 - **clasp 연결**: `.clasp.json.example`을 `.clasp.json`으로 복사하고 `scriptId`를 채웁니다. `rootDir`가 `gas`라서 `web/`은 Apps Script에 올라가지 않습니다. 이 파일은 `.gitignore` 대상입니다.
 - **clasp 로그인**: 레포 안의 `.clasprc.json`에 공용 계정 토큰을 저장합니다 (`npx @google/clasp -A .clasprc.json login`). 이후 명령도 `-A .clasprc.json`을 붙이고, 매니페스트 확인 프롬프트 때문에 push는 `push --force`로 합니다. 이 파일도 `.gitignore` 대상입니다.
 - **appsscript.json 선반영**: 웹앱 접근 설정(나로 실행 / 모든 사용자)은 4단계가 아닌 2단계 배포 설정을 미리 넣어 둔 것입니다. 시간대는 `Asia/Seoul`입니다.
